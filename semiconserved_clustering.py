@@ -21,28 +21,47 @@ import timeit
 
 # Assume DNA fasta files are located in the current directory
 
+
+#######################################################
+# Algorithm:
+#	For each fasta file
+#		For each gene in fasta file
+#			For cluster in clusters
+#				if gene in cluster : save to cluster
+#######################################################
+
+timing = True
+start = timeit.default_timer()
+
+def checkpoint_time() :
+	global timing
+	global start
+	if timing :
+		checkpoint = timeit.default_timer()
+		print 'Time so far: %d' %(checkpoint - start)
+
+id_counter = 1
 class Cluster(object) :
-# map from organism to list of genes
+# genes  ===   map from organism to list of genes
+# data   ===   map from organism to sequence data
 	def __init__(self) :
+		global id_counter
+		self.id = id_counter
+		id_counter = id_counter + 1
 		self.genes = {}
+		self.data = {}
 
 	def is_valid(self, num_organisms) :
-#		if len(self.genes) != num_organisms :
-#			print 'bad nums'
-#			print self.genes
-#			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
-#				print 'bad organism'
-#				print key
-#				print self.genes[key]
 				return False
-#		print "valid"
-#		print self.genes
 		return True
 
-	def get_num_organisms(self) :
+	def get_bin(self) :
 		return len(self.genes)
+
+	def get_id(self) :
+		return self.id
 
 	def add_gene(self, organism, orf) :
 		if organism in self.genes :
@@ -53,40 +72,36 @@ class Cluster(object) :
 	def get_all_names_sorted(self) :
 		return sorted(self.genes.iterkeys())
 
-	# It is important to sort the keys so that the organisms are always in the same order
-	def write_output(self, out_file, all_names) :
-		for key in all_names :
-			if key not in self.genes :
-				out_file.write('> %s\n' %key)
-				continue
-			filename = key + '.fasta'
-			in_file = open(filename, 'r')
-			getting = False
-			for line in in_file :
-				line = line.strip()
-				if line[0] == '>' :
-					if getting :
-						break
-					if line[1:] == self.genes[key][0] :
-#						print line[1:]
-#						print self.genes[key][0]
-						getting = True
-				if getting :
-					out_file.write(line)
-					if line[0] == '>' :
-						out_file.write(" %s" %key);
-					out_file.write('\n')
-			in_file.close()
-
 	def print_all(self) :
 		for key in self.genes :
 			print key
 			print self.genes[key]
 			print key + ".fasta"
 
+	def contains(self, organism, gene) :
+		if organism in self.genes :
+			if gene in self.genes[organism] :
+				return True
+		return False
+
+	def give(self, organism, data) :
+		self.data[organism] = data
+
+	def save(self, out_file, all_names) :
+		for organism in all_names :
+			out_file.write('> %s\n' %organism)
+			if organism in self.data :
+				out_file.write(self.data[organism])
+				out_file.write('\n')
 
 def usage(program_path) :
 	print '\nUsage: %s <number_of_organisms> <multiparanoid_output.sql>\n' %program_path
+
+id_counter = 1
+def get_id() :
+	global id_counter
+	id_counter = id_counter + 1
+	return (id_counter - 1)
 
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
@@ -104,7 +119,7 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		elif i != int(line[0]) :
 			i = int(line[0])
 			if cluster.is_valid(num_organisms) :
-				bin = cluster.get_num_organisms()
+				bin = cluster.get_bin()
 				if bin in clusters :
 					clusters[bin].append(cluster)
 				else :
@@ -113,41 +128,83 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		# line goes in current cluster
 		cluster.add_gene(line[1].split('.')[0], line[2])
 	in_file.close()
-	return clusters
-
-def mine_clusters(clusters, all_names) :
-	i = 1
-	for bin in clusters :
-		for cluster in clusters[bin] :
-			print 'Writing cluster %d' %i
-			filename = "%d_tmp" %i
-			out_file = open(filename, 'w')
-			cluster.write_output(out_file, all_names)
-			i += 1
-			out_file.close()
-			# this is to silence mafft
-			nowhere = open(os.devnull, 'w')
-			subprocess.call("mafft %s > cluster%d_bin%d.fasta" %(filename, i, bin), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
-			os.remove(filename)
-
-def main(args) :
-	start = timeit.default_timer()
-
-	if len(args) != 3 :
-		usage(args[0])
-		exit()
-	clusters = read_multiparanoid(int(args[1]), args[2])
-	# Assume there is a cluster containing all the organisms
-	big_cluster = clusters[int(args[1])][0]
-	all_names = big_cluster.get_all_names_sorted()
 	if 0 in clusters :
 		del clusters[0]
 	for bin in clusters :
 		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
-	mine_clusters(clusters, all_names)
+	return clusters
 
-	stop = timeit.default_timer()
-	print 'Run time: %d' %(stop - start)	
+def give_gene_to_cluster(clusters, organism, gene, data) :
+	if gene == '' or data == '' :
+		return clusters
+	for key in clusters :
+		for cluster in clusters[key] :
+			if cluster.contains(organism, gene) :
+				cluster.give(organism, data)
+				return clusters
+	return clusters
+
+def read_fastas(clusters, all_names) :
+	for name in all_names :
+		filename = name + '.fasta'
+		print 'Reading %s...' %filename
+		in_file = open(filename, 'r')
+		gene = ''
+		data = ''
+		for line in in_file :
+			if line[0] == '>' :
+				# Use previous gene
+				clusters = give_gene_to_cluster(clusters, name, gene, data)
+				# Prepare to get new gene
+				line = line.strip()
+				gene = line[1:]
+				data = ''
+			else :
+				data = data + line
+		in_file.close()
+	return clusters
+
+def write_cluster(cluster, all_names) :
+	# This is the slowest part of the program now.
+	print 'Writing cluster %d' %cluster.get_id()
+	filename = "tmp_cluster"
+	out_file = open(filename, 'w')
+	cluster.save(out_file, all_names)
+	out_file.close()
+	checkpoint_time()
+	print 'Running mafft ...'
+	# this is to silence mafft
+	nowhere = open(os.devnull, 'w')
+	subprocess.call("mafft %s > cluster%d_bin%d.fasta" %(filename, cluster.get_id(), cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	os.remove(filename)
+	checkpoint_time()
+
+def main(args) :
+	if len(args) != 3 :
+		usage(args[0])
+		exit()
+
+	# Read multiparanoid
+	clusters = read_multiparanoid(int(args[1]), args[2])
+	# Assume there is a cluster containing all the organisms
+	big_cluster = clusters[int(args[1])][0]
+	all_names = big_cluster.get_all_names_sorted()
+
+	# time
+	checkpoint_time()
+	
+	# Read fasta files
+	clusters = read_fastas(clusters, all_names)
+
+	# time
+	checkpoint_time()
+	
+	# Write aligned clusters
+	for key in clusters :
+		for cluster in clusters[key] :
+			write_cluster(cluster, all_names)
+	# time
+	checkpoint_time()
 
 if __name__ == "__main__" :
 	main(sys.argv)
