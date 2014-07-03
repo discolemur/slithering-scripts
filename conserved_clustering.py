@@ -44,9 +44,13 @@ class Cluster(object) :
 			self.genes[organism] = [orf]
 
 	# It is important to sort the keys so that the organisms are always in the same order
-	def write_output(self, out_file) :
+	def write_output(self, out_file, uses_dna) :
 		for key in sorted(self.genes.iterkeys()) :
-			filename = key + '.fasta'
+			filename = key
+			if (uses_dna) :
+				filename = filename + '.fasta'
+			else :
+				filename = filename + '.pep'
 			in_file = open(filename, 'r')
 			getting = False
 			for line in in_file :
@@ -73,7 +77,7 @@ class Cluster(object) :
 
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> <multiparanoid_output.sql>\n' %program_path
+	print '\nUsage: %s <number_of_organisms> [-pep or -dna] <multiparanoid_output.sql>\n' %program_path
 
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
@@ -98,12 +102,12 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 	in_file.close()
 	return clusters
 
-def mine_clusters(clusters) :
+def mine_clusters(clusters, uses_dna) :
 	i = 1
 	for cluster in clusters :
 		filename = "%d_tmp" %i
 		out_file = open(filename, 'w')
-		cluster.write_output(out_file)
+		cluster.write_output(out_file, uses_dna)
 		i += 1
 		out_file.close()
 		nowhere = open(os.devnull, 'w')
@@ -111,11 +115,11 @@ def mine_clusters(clusters) :
 		os.remove(filename)
 
 def main(args) :
-	if len(args) != 3 :
+	if len(args) != 4 or ( args[2] != '-pep' and args[2] != '-dna' ) :
 		usage(args[0])
 		exit()
-	clusters = read_multiparanoid(int(args[1]), args[2])
-	mine_clusters(clusters)
+	clusters = read_multiparanoid(int(args[1]), args[3])
+	mine_clusters(clusters, (args[2] == '-dna') )
 
 if __name__ == "__main__" :
 	main(sys.argv)

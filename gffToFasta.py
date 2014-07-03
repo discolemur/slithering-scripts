@@ -59,6 +59,7 @@ def grab_and_write_sequences(locations, fasta_in, fasta_out) :
 			ID = line.split(' ')[0][1:]
 			if ID in locations :
 				loc = locations[ID]
+				fasta_out.write('\n')
 				fasta_out.write('>')
 				fasta_out.write(ID)
 				fasta_out.write('\n')
@@ -67,9 +68,10 @@ def grab_and_write_sequences(locations, fasta_in, fasta_out) :
 		elif search and line[0] != '>':
 			for char in line :
 				if counter >= loc.begin and counter <= loc.end :
+					if (char == '>') :
+						print "There may be a big phat error in counting base pairs."
 					fasta_out.write(char)
 				if counter == loc.end :
-					fasta_out.write('\n')
 					search = False
 				counter += 1
 

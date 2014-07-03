@@ -35,6 +35,12 @@ def build_super_matrix(files, num_organisms) :
 		# At this point, subArray[0] is blank
 		# the first organism is in subArray[1]
 		# etc.
+		if (len(subArray) == 1) :
+			print "ERROR: cluster %s gave no output!" %filename
+			continue
+		if (len(subArray) != num_organisms + 1) :
+			print "ERROR: cluster %s has the incorrect number of sequences (%d)." %(filename, len(subArray))
+			continue
 		for i in range(1, num_organisms + 1) :
 			superArray[i-1] = superArray[i-1] + subArray[i]
 	super_file = 'super.fasta'
