@@ -1,18 +1,11 @@
-//
-//  main.cpp
-//  mergecluster
-//
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-static const char* ofname = "../../../../../merged.disco";
-
 // This structure is the one that we'll use for all of our work
 // Initially aclid will be -1 for every row.  gclid and gsid come directly from
-// the input file.  The algorithm for merging clusters is is:
+// the input file.  The algorithm for merging clusters is:
 //
 //  Start assigning aclid values with 0
 //  Start at the top of the array of rows
@@ -200,6 +193,7 @@ int main(int argc, const char * argv[])
     
     print_rows(rows, nlines, argv[2]);
     
+    free(rows);
     return 0;
 }
 

@@ -55,6 +55,8 @@ class Cluster(object) :
 			getting = False
 			for line in in_file :
 				line = line.strip()
+				if line == '' :
+					continue
 				if line[0] == '>' :
 					if getting :
 						break
