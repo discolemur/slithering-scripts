@@ -11,7 +11,7 @@ import timeit
 
 
 # This script
-# Takes multiparanoid output
+# Takes disco solution to multiparanoid
 # And associated fasta files and
 # Creates a supermatrix
 
@@ -51,6 +51,7 @@ class Cluster(object) :
 		self.genes = {}
 		self.data = {}
 
+	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
@@ -95,7 +96,7 @@ class Cluster(object) :
 				out_file.write('\n')
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> <multiparanoid_output.sql>\n' %program_path
+	print '\nUsage: %s <number_of_organisms> [-pep or -dna] <solution.disco>\n' %program_path
 
 id_counter = 1
 def get_id() :
@@ -103,6 +104,8 @@ def get_id() :
 	id_counter = id_counter + 1
 	return (id_counter - 1)
 
+# Input format:
+# cluster	organism	gene
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
 	in_file = open(multiparanoid, 'r')
@@ -134,6 +137,7 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
 	return clusters
 
+
 def give_gene_to_cluster(clusters, organism, gene, data) :
 	if gene == '' or data == '' :
 		return clusters
@@ -144,9 +148,11 @@ def give_gene_to_cluster(clusters, organism, gene, data) :
 				return clusters
 	return clusters
 
-def read_fastas(clusters, all_names) :
+def read_fastas(clusters, all_names, uses_dna) :
 	for name in all_names :
-		filename = name + '.fasta'
+		filename = name + '.pep'
+		if uses_dna :
+			filename = name + '.fasta'
 		print 'Reading %s...' %filename
 		in_file = open(filename, 'r')
 		gene = ''
@@ -157,14 +163,18 @@ def read_fastas(clusters, all_names) :
 				clusters = give_gene_to_cluster(clusters, name, gene, data)
 				# Prepare to get new gene
 				line = line.strip()
-				gene = line[1:]
+				line = line.split(' ')
+				if len(line) == 1 :
+					gene = line[0][1:]
+				else :
+					gene = line[-1].split(':')[0]
 				data = ''
 			else :
 				data = data + line
 		in_file.close()
 	return clusters
 
-def write_cluster(cluster, all_names) :
+def write_cluster(cluster, all_names, multiparanoid, subscript) :
 	# This is the slowest part of the program now.
 #	print 'Writing cluster %d' %cluster.get_id()
 	filename = "tmp_cluster"
@@ -175,18 +185,25 @@ def write_cluster(cluster, all_names) :
 #	print 'Running mafft ...'
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
-	subprocess.call("mafft %s > cluster%d_bin%d.fasta" %(filename, cluster.get_id(), cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	subprocess.call("mafft %s > %ssemiconserved_%s/cluster%d_bin%d.fasta" %(filename, subscript, multiparanoid, cluster.get_id(), cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
 	checkpoint_time()
 
 def main(args) :
-	if len(args) != 3 :
+	if len(args) != 4 or ( args[2] != '-pep' and args[2] != '-dna' ) :
 		usage(args[0])
-		exit()
-
+		return
+	subscript = "pep_"
+	if (args[2] == '-dna') :
+		subscript = 'dna_'
 	# Read multiparanoid
-	clusters = read_multiparanoid(int(args[1]), args[2])
+	print "Reading disco input"
+	clusters = read_multiparanoid(int(args[1]), args[3])
+	print "There are %d semi-conserved clusters." %len(clusters)
+	if len(clusters) == 0 :
+		return
 	# Assume there is a cluster containing all the organisms
+	# Look in bin given by args[1] (number of organisms)
 	big_cluster = clusters[int(args[1])][0]
 	all_names = big_cluster.get_all_names_sorted()
 
@@ -194,22 +211,31 @@ def main(args) :
 	checkpoint_time()
 	
 	# Read fasta files
-	clusters = read_fastas(clusters, all_names)
-
+	print "Gathering clusters"
+	clusters = read_fastas(clusters, all_names, (args[2] == '-dna'))
+	
 	# time
 	checkpoint_time()
 
-	total = 0.0
+	total = 0
 	for bin in clusters :
 		total += len(clusters[bin])
 
-	counter = 0.0
+	if not os.path.exists("%ssemiconserved_%s" %(subscript, args[3])) :
+		os.makedirs("%ssemiconserved_%s" %(subscript, args[3]))
+
+
+	counter = 0
+	percent = total / 10
+	if percent == 0 :
+		percent = 1
 	# Write aligned clusters
 	for key in clusters :
 		for cluster in clusters[key] :
-			write_cluster(cluster, all_names)
+			if counter % percent == 0 :
+				print "Progress: %.2f%%" %(counter * 100.0 / total)
+			write_cluster(cluster, all_names, args[3], subscript)
 			counter += 1
-		print "Progress: %f.2\%" %(counter * 100 / total)
 	# time
 	checkpoint_time()
 

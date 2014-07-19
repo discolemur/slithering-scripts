@@ -6,14 +6,12 @@ import subprocess
 import timeit
 
 # Species have only unique genes, no paralogy
-# Missing species are filled in with dashes after alignment
-# Clusters have a bin number for how many organisms are present in each cluster
-
+# Conserved clusters have no missing organisms
 
 # This script
-# Takes multiparanoid output
+# Takes disco solution to multiparanoid
 # And associated fasta files and
-# Creates a supermatrix
+# Creates cluster files
 
 # Assume the following about filenames:
 # If the peptide files have format "filename.pep"
@@ -30,7 +28,7 @@ import timeit
 #				if gene in cluster : save to cluster
 #######################################################
 
-timing = True
+timing = False
 start = timeit.default_timer()
 
 def checkpoint_time() :
@@ -51,7 +49,10 @@ class Cluster(object) :
 		self.genes = {}
 		self.data = {}
 
+	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
+		if len(self.genes) != num_organisms :
+			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
 				return False
@@ -95,7 +96,7 @@ class Cluster(object) :
 				out_file.write('\n')
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> <multiparanoid_output.sql>\n' %program_path
+	print '\nUsage: %s <number_of_organisms> [-pep or -dna] <solution.disco>\n' %program_path
 
 id_counter = 1
 def get_id() :
@@ -103,10 +104,12 @@ def get_id() :
 	id_counter = id_counter + 1
 	return (id_counter - 1)
 
+# Input format:
+# cluster	organism	gene
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
 	in_file = open(multiparanoid, 'r')
-	clusters = {}
+	clusters = []
 	i = 0
 	cluster = Cluster()
 	for line in in_file :
@@ -119,34 +122,28 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		elif i != int(line[0]) :
 			i = int(line[0])
 			if cluster.is_valid(num_organisms) :
-				bin = cluster.get_bin()
-				if bin in clusters :
-					clusters[bin].append(cluster)
-				else :
-					clusters[bin] = [cluster]
+				clusters.append(cluster)
 			cluster = Cluster()
 		# line goes in current cluster
 		cluster.add_gene(line[1].split('.')[0], line[2])
 	in_file.close()
-	if 0 in clusters :
-		del clusters[0]
-	for bin in clusters :
-		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
 	return clusters
+
 
 def give_gene_to_cluster(clusters, organism, gene, data) :
 	if gene == '' or data == '' :
 		return clusters
-	for key in clusters :
-		for cluster in clusters[key] :
-			if cluster.contains(organism, gene) :
-				cluster.give(organism, data)
-				return clusters
+	for cluster in clusters :
+		if cluster.contains(organism, gene) :
+			cluster.give(organism, data)
+			return clusters
 	return clusters
 
-def read_fastas(clusters, all_names) :
+def read_fastas(clusters, all_names, uses_dna) :
 	for name in all_names :
-		filename = name + '.fasta'
+		filename = name + '.pep'
+		if uses_dna :
+			filename = name + '.fasta'
 		print 'Reading %s...' %filename
 		in_file = open(filename, 'r')
 		gene = ''
@@ -157,52 +154,75 @@ def read_fastas(clusters, all_names) :
 				clusters = give_gene_to_cluster(clusters, name, gene, data)
 				# Prepare to get new gene
 				line = line.strip()
-				gene = line[1:]
+				line = line.split(' ')
+				if len(line) == 1 :
+					gene = line[0][1:]
+				else :
+					gene = line[-1].split(':')[0]
 				data = ''
 			else :
 				data = data + line
 		in_file.close()
 	return clusters
 
-def write_cluster(cluster, all_names) :
+def write_cluster(cluster, all_names, multiparanoid, subscript) :
 	# This is the slowest part of the program now.
-	print 'Writing cluster %d' %cluster.get_id()
+#	print 'Writing cluster %d' %cluster.get_id()
 	filename = "tmp_cluster"
 	out_file = open(filename, 'w')
 	cluster.save(out_file, all_names)
 	out_file.close()
-	checkpoint_time()
-	print 'Running mafft ...'
+#	checkpoint_time()
+#	print 'Running mafft ...'
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
-	subprocess.call("mafft %s > cluster%d_bin%d.fasta" %(filename, cluster.get_id(), cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	subprocess.call("mafft %s > %sconserved_mod_%s/cluster%d.fasta" %(filename, subscript, multiparanoid, cluster.get_id()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
 	checkpoint_time()
 
 def main(args) :
-	if len(args) != 3 :
+	if len(args) != 4 or ( args[2] != '-pep' and args[2] != '-dna' ) :
 		usage(args[0])
-		exit()
-
+		return
+	subscript = "pep_"
+	if (args[2] == '-dna') :
+		subscript = 'dna_'
 	# Read multiparanoid
-	clusters = read_multiparanoid(int(args[1]), args[2])
+	print "Reading disco input"
+	clusters = read_multiparanoid(int(args[1]), args[3])
+	print "There are %d semi-conserved clusters." %len(clusters)
+	if len(clusters) == 0 :
+		return
 	# Assume there is a cluster containing all the organisms
-	big_cluster = clusters[int(args[1])][0]
+	big_cluster = clusters[0]
 	all_names = big_cluster.get_all_names_sorted()
 
 	# time
 	checkpoint_time()
 	
 	# Read fasta files
-	clusters = read_fastas(clusters, all_names)
-
+	print "Gathering clusters"
+	clusters = read_fastas(clusters, all_names, (args[2] == '-dna'))
+	
 	# time
 	checkpoint_time()
-	
+
+	total = len(clusters)
+
+	if not os.path.exists("%sconserved_mod_%s" %(subscript, args[3])) :
+		os.makedirs("%sconserved_mod_%s" %(subscript, args[3]))
+
+
+	counter = 0
+	percent = total / 10
+	if percent == 0 :
+		percent = 1
 	# Write aligned clusters
-	for key in clusters :
-		for cluster in clusters[key] :
-			write_cluster(cluster, all_names)
+	for cluster in clusters :
+		if counter % percent == 0 :
+			print "Progress: %.2f%%" %(counter * 100.0 / total)
+		write_cluster(cluster, all_names, args[3], subscript)
+		counter += 1
 	# time
 	checkpoint_time()
 

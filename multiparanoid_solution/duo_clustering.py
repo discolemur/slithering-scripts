@@ -6,10 +6,13 @@ import os
 
 import subprocess
 
+import re
+
 # This script
 # Takes my multiparanoid solution's output
 # And associated fasta files and
-# Creates a supermatrix of conservative clusters
+# Creates a supermatrix of duo clusters
+#	Duo clusters have one pair of paralogs for each organism
 
 # Assume the following about filenames:
 # If the peptide files have format "filename.pep"
@@ -28,7 +31,7 @@ class Cluster(object) :
 #			print self.genes
 			return False
 		for key in self.genes :
-			if len(self.genes[key]) != 1:
+			if len(self.genes[key]) != 2:
 #				print 'bad organism'
 #				print key
 #				print self.genes[key]
@@ -53,16 +56,18 @@ class Cluster(object) :
 				filename = filename + '.pep'
 			in_file = open(filename, 'r')
 			getting = False
+			str1 = '.*%s.*' %self.genes[key][0]
+			str2 = '.*%s.*' %self.genes[key][1]
+			pattern1 = re.compile(str1)
+			pattern2 = re.compile(str2)
 			for line in in_file :
 				line = line.strip()
 				if line == '' :
 					continue
 				if line[0] == '>' :
 					if getting :
-						break
-					if line[1:] == self.genes[key][0] :
-#						print line[1:]
-#						print self.genes[key][0]
+						getting = False
+					if pattern1.match(line) or pattern2.match(line) :
 						getting = True
 				if getting :
 					out_file.write(line)
@@ -108,24 +113,35 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 	in_file.close()
 	return clusters
 
-def mine_clusters(clusters, uses_dna) :
+def mine_clusters(clusters, uses_dna, multiparanoid, subscript) :
 	i = 1
+	nowhere = open(os.devnull, 'w')
 	for cluster in clusters :
-		filename = "%d_tmp" %i
-		out_file = open(filename, 'w')
+		print "Working on cluster %d" %i
+		tmp = "%d_tmp" %i
+		out_file = open(tmp, 'w')
 		cluster.write_output(out_file, uses_dna)
-		i += 1
 		out_file.close()
-		nowhere = open(os.devnull, 'w')
-		subprocess.call("mafft %s > cluster%d.fasta" %(filename, i), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
-		os.remove(filename)
+		subprocess.call("mafft %s > %sduo_%s/cluster%d.fasta" %(tmp, subscript, multiparanoid, i), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+		os.remove(tmp)
+		i += 1
 
 def main(args) :
 	if len(args) != 4 or ( args[2] != '-pep' and args[2] != '-dna' ) :
 		usage(args[0])
 		exit()
+	subscript = "pep_"
+	if (args[2] == '-dna') :
+		subscript = 'dna_'
+	print "Reading disco input"
 	clusters = read_multiparanoid(int(args[1]), args[3])
-	mine_clusters(clusters, (args[2] == '-dna') )
+	print "%d clusters found." %len(clusters)
+	if len(clusters) == 0 :
+		return
+	if not os.path.exists("%sduo_%s" %(subscript, args[3])) :
+		os.makedirs("%sduo_%s" %(subscript, args[3]))
+	print "Gathering clusters"
+	mine_clusters(clusters, (args[2] == '-dna'), args[3], subscript)
 
 if __name__ == "__main__" :
 	main(sys.argv)

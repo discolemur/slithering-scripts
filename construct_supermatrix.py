@@ -9,19 +9,28 @@ import glob
 # Assume the organisms in the clusters always come in the same order
 
 def usage(program_path) :
-	print '\nUsage: %s <number of organisms>\n' %program_path
+	print '\nUsage: %s\n' %program_path
 
 # Because all organisms come in order, we can pull headers from any sample file
-def produce_headers(sampleFile, superArray) :
+def produce_headers(sampleFile) :
+	superArray = []
 	file = open(sampleFile, 'r')
 	for line in file :
 		if line[0] == '>' :
-			superArray.append(line)
+			line = line.split(' ')
+			superArray.append(">%s" %line[-1])
 	return superArray
 
-def build_super_matrix(files, num_organisms) :
-	superArray = []
-	superArray = produce_headers(files[0], superArray)
+def build_super_matrix(files) :
+	total = len(files)
+	counter = 0
+	percent = total / 10
+	if percent == 0 :
+		percent = 1
+	superArray = produce_headers(files[0])
+	num_organisms = len(superArray)
+	print "There are %d files." %len(files)
+	print "Progress: 0.00%"
 	for filename in files :
 		file = open(filename, 'r')
 		contents = ""
@@ -42,7 +51,12 @@ def build_super_matrix(files, num_organisms) :
 			print "ERROR: cluster %s has the incorrect number of sequences (%d)." %(filename, len(subArray))
 			continue
 		for i in range(1, num_organisms + 1) :
+			if subArray[i] == "" :
+				print "%s has empty sequences." %file
 			superArray[i-1] = superArray[i-1] + subArray[i]
+		counter += 1
+		if counter % percent == 0 :
+			print "Progress: %.2f%%" %(counter * 100.0 / total)
 	super_file = 'super.fasta'
 	superMatrix = open(super_file, 'w')
 	for item in superArray :
@@ -53,12 +67,11 @@ def build_super_matrix(files, num_organisms) :
 
 # args[1] is the number of organisms
 def main(args) :
-	if len(args) != 2 :
+	if len(args) != 1 :
 		usage(args[0])
 		exit()
-	num_organisms = int(args[1])
 	files = glob.glob("cluster*")
-	build_super_matrix(files, num_organisms)
+	build_super_matrix(files)
 
 if __name__ == "__main__" :
 	main(sys.argv)
