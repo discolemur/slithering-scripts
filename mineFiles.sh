@@ -29,7 +29,7 @@ else
 	fi
 fi
 
-mkdir mined_files
+mkdir -p mined_files
 location="${PWD}/mined_files"
 echo "Find mined files in: $location"
 

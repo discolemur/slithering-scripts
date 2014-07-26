@@ -40,19 +40,18 @@ def checkpoint_time() :
 		checkpoint = timeit.default_timer()
 		print 'Time so far: %d' %(checkpoint - start)
 
-id_counter = 1
 class Cluster(object) :
 # genes  ===   map from organism to list of genes
 # data   ===   map from organism to sequence data
 	def __init__(self) :
-		global id_counter
-		self.id = id_counter
-		id_counter = id_counter + 1
 		self.genes = {}
 		self.data = {}
 
 	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
+		global conserved
+		if conserved and len(self.genes) != num_organisms :
+			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
 				return False
@@ -60,9 +59,6 @@ class Cluster(object) :
 
 	def get_bin(self) :
 		return len(self.genes)
-
-	def get_id(self) :
-		return self.id
 
 	def add_gene(self, organism, orf) :
 		if organism in self.genes :
@@ -88,22 +84,12 @@ class Cluster(object) :
 	def give(self, organism, data) :
 		self.data[organism] = data
 
-	def save(self, out_file, all_names) :
+	def save(self, out_file, all_names, counter) :
 		for organism in all_names :
-			out_file.write('> %s\n' %organism)
+			out_file.write('>%d|%s|%s\n' %(counter, organism, self.genes[organism][0]))
 			if organism in self.data :
 				out_file.write(self.data[organism])
 				out_file.write('\n')
-
-def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> [-pep or -dna] <solution.disco>\n' %program_path
-
-id_counter = 1
-def get_id() :
-	global id_counter
-	id_counter = id_counter + 1
-	return (id_counter - 1)
-
 # Input format:
 # cluster	organism	gene
 # Assumes num_organisms is an int
@@ -174,32 +160,55 @@ def read_fastas(clusters, all_names, uses_dna) :
 		in_file.close()
 	return clusters
 
-def write_cluster(cluster, all_names, multiparanoid, subscript) :
+def write_cluster(cluster, all_names, multiparanoid, subscript, counter) :
 	# This is the slowest part of the program now.
-#	print 'Writing cluster %d' %cluster.get_id()
+#	print 'Writing cluster %d' %counter
 	filename = "tmp_cluster"
 	out_file = open(filename, 'w')
-	cluster.save(out_file, all_names)
+	cluster.save(out_file, all_names, counter)
 	out_file.close()
 #	checkpoint_time()
 #	print 'Running mafft ...'
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
-	subprocess.call("mafft %s > %ssemiconserved_%s/cluster%d_bin%d.fasta" %(filename, subscript, multiparanoid, cluster.get_id(), cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	if conserved :
+		subprocess.call("mafft %s > %sconserved_%s/cluster%d.aln" %(filename, subscript, multiparanoid, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	else :
+		subprocess.call("mafft %s > %ssemiconserved_%s/cluster%d_bin%d.aln" %(filename, subscript, multiparanoid, counter, cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
 	checkpoint_time()
 
+def mkdirs(name, subscript) :
+	global conserved
+	if conserved :
+		if not os.path.exists("%sconserved_%s" %(subscript, name)) :
+			os.makedirs("%sconserved_%s" %(subscript, name))
+	else :
+		if not os.path.exists("%ssemiconserved_%s" %(subscript, name)) :
+			os.makedirs("%ssemiconserved_%s" %(subscript, name))
+
+
+def usage(program_path) :
+	print '\nUsage: %s <number_of_organisms> [-pep or -dna] [-c (conserved) or -s (semiconserved)] <solution.disco>\n' %program_path
+
+conserved = True
+
 def main(args) :
-	if len(args) != 4 or ( args[2] != '-pep' and args[2] != '-dna' ) :
+	global conserved
+	if len(args) != 5 or ( args[2] != '-pep' and args[2] != '-dna' ) or ( args[3] != '-c' and args[3] != '-s' ) :
 		usage(args[0])
 		return
 	subscript = "pep_"
 	if (args[2] == '-dna') :
 		subscript = 'dna_'
+	if (args[3] == '-s') :
+		conserved = False
+		print 'Running semiconserved clustering.'
+	else :
+		print 'Running conserved clustering.'
 	# Read multiparanoid
-	print "Reading disco input"
-	clusters = read_multiparanoid(int(args[1]), args[3])
-	print "There are %d semi-conserved clusters." %len(clusters)
+	print 'Reading disco input'
+	clusters = read_multiparanoid(int(args[1]), args[4])
 	if len(clusters) == 0 :
 		return
 	# Assume there is a cluster containing all the organisms
@@ -220,21 +229,21 @@ def main(args) :
 	total = 0
 	for bin in clusters :
 		total += len(clusters[bin])
+	
+	print 'There are %d clusters in total.' %total 
 
-	if not os.path.exists("%ssemiconserved_%s" %(subscript, args[3])) :
-		os.makedirs("%ssemiconserved_%s" %(subscript, args[3]))
+	mkdirs(args[4], subscript)	
 
-
-	counter = 0
+	counter = 1
 	percent = total / 10
 	if percent == 0 :
 		percent = 1
 	# Write aligned clusters
-	for key in clusters :
-		for cluster in clusters[key] :
+	for bin in clusters :
+		for cluster in clusters[bin] :
 			if counter % percent == 0 :
 				print "Progress: %.2f%%" %(counter * 100.0 / total)
-			write_cluster(cluster, all_names, args[3], subscript)
+			write_cluster(cluster, all_names, args[4], subscript, counter)
 			counter += 1
 	# time
 	checkpoint_time()
