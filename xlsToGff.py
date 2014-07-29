@@ -127,6 +127,7 @@ def usage(program_path) :
 def main(args) :
 	if len(args) != 3 :
 		usage(args[0])
+		return
 	infile = open(args[1], 'r')
 	outfile = open(args[2], 'w')
 	convertFile(infile, outfile)

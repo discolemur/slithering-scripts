@@ -11,9 +11,9 @@ import timeit
 
 
 # This script
-# Takes disco solution to multiparanoid
-# And associated fasta files and
-# Produces clusters (conserved or semiconserved)
+# Takes orthodb text file
+# And associated orthodb fasta file and
+# Produces clusters (conserved)
 
 # Assume the following about filenames:
 # If the peptide files have format "filename.pep"
@@ -29,7 +29,7 @@ import timeit
 #				if gene in cluster : save to cluster
 #######################################################
 
-timing = False
+timing = True
 start = timeit.default_timer()
 
 def checkpoint_time() :
@@ -48,22 +48,23 @@ class Cluster(object) :
 
 	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
-		global conserved
-		if conserved and len(self.genes) != num_organisms :
+		if len(self.genes) != num_organisms :
+	#		print 'Invalid cluster: has %d organisms' %len(self.genes)
 			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
+	#			print 'Invalid: has paralogy with %s, %s' %(key, self.genes[key])
 				return False
 		return True
 
 	def get_bin(self) :
 		return len(self.genes)
 
-	def add_gene(self, organism, orf) :
+	def add_gene(self, organism, gene) :
 		if organism in self.genes :
-			self.genes[organism].append(orf)
+			self.genes[organism].append(gene)
 		else :
-			self.genes[organism] = [orf]
+			self.genes[organism] = [gene]
 
 	def get_all_names_sorted(self) :
 		return sorted(self.genes.iterkeys())
@@ -81,7 +82,8 @@ class Cluster(object) :
 		return False
 
 	def give(self, organism, data) :
-		self.data[organism] = data
+		if organism not in self.data :
+			self.data[organism] = data
 
 	def save(self, out_file, all_names, counter) :
 		for organism in all_names :
@@ -90,22 +92,19 @@ class Cluster(object) :
 				out_file.write(self.data[organism])
 				out_file.write('\n')
 # Input format:
-# cluster	organism	gene
+# Cluster	gene	protein	organism	name	code	length	...
 # Assumes num_organisms is an int
-def read_multiparanoid(num_organisms, multiparanoid) :
-	in_file = open(multiparanoid, 'r')
+def read_txt(num_organisms, txt) :
+	in_file = open(txt, 'r')
 	clusters = {}
-	i = 0
+	prev = ''
 	cluster = Cluster()
 	for line in in_file :
 		line = line.strip()
 		line = line.split('\t')
-		# line is not for this cluster
-		if not line[0].isdigit() :
-			continue
 		# line indicates a new cluster
-		elif i != int(line[0]) :
-			i = int(line[0])
+		if prev != line[0] :
+			prev = line[0]
 			if cluster.is_valid(num_organisms) :
 				bin = cluster.get_bin()
 				if bin in clusters :
@@ -114,7 +113,10 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 					clusters[bin] = [cluster]
 			cluster = Cluster()
 		# line goes in current cluster
-		cluster.add_gene(line[1].split('.')[0], line[2])
+		organism = line[5]
+		gene = line[1]
+#		print 'Organism: %s, Gene: %s' %(organism, gene)
+		cluster.add_gene(organism, gene)
 	in_file.close()
 	if 0 in clusters :
 		del clusters[0]
@@ -133,82 +135,66 @@ def give_gene_to_cluster(clusters, organism, gene, data) :
 				return clusters
 	return clusters
 
-def read_fastas(clusters, all_names, uses_dna) :
-	for name in all_names :
-		filename = name + '.pep'
-		if uses_dna :
-			filename = name + '.fasta'
-		print 'Reading %s...' %filename
-		in_file = open(filename, 'r')
-		gene = ''
-		data = ''
-		for line in in_file :
-			if line[0] == '>' :
-				# Use previous gene
-				clusters = give_gene_to_cluster(clusters, name, gene, data)
-				# Prepare to get new gene
-				line = line.strip()
-				line = line.split(' ')
-				if len(line) == 1 :
-					gene = line[0][1:]
-				else :
-					gene = line[-1].split(':')[0]
-				data = ''
-			else :
-				data = data + line
-		in_file.close()
+def read_fasta(clusters, all_names, fasta) :
+	total = sum(1 for line in open(fasta))
+	print 'Reading %s...' %fasta
+	in_file = open(fasta, 'r')
+	count = 0
+	percent = total / 10
+	gene = ''
+	data = ''
+	organism = ''
+	for line in in_file :
+		if line[0] == '>' :
+			# Use previous gene
+			clusters = give_gene_to_cluster(clusters, organism, gene, data)
+			# Prepare to get new gene
+			line = line.strip()
+			line = line[1:]
+			line = line.split(' ')
+			gene = line[0]
+			organism = line[-1]
+			data = ''
+		else :
+			data = data + line
+		count += 1
+		if count % percent == 0 :
+			print "Progress: %.2f%%" %(count * 100.0 / total)
+	give_gene_to_cluster(clusters, organism, gene, data)
+	in_file.close()
 	return clusters
 
-def write_cluster(cluster, all_names, multiparanoid, subscript, counter) :
+def write_cluster(cluster, all_names, txt, counter) :
 	# This is the slowest part of the program now.
 #	print 'Writing cluster %d' %counter
 	filename = "tmp_cluster"
 	out_file = open(filename, 'w')
 	cluster.save(out_file, all_names, counter)
 	out_file.close()
-#	checkpoint_time()
 #	print 'Running mafft ...'
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
-	if conserved :
-		subprocess.call("mafft %s > %sconserved_%s/cluster%d.aln" %(filename, subscript, multiparanoid, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
-	else :
-		subprocess.call("mafft %s > %ssemiconserved_%s/cluster%d_bin%d.aln" %(filename, subscript, multiparanoid, counter, cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	subprocess.call("mafft %s > conserved_%s/cluster%d.aln" %(filename, txt, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
-	checkpoint_time()
 
-def mkdirs(name, subscript) :
-	global conserved
-	if conserved :
-		if not os.path.exists("%sconserved_%s" %(subscript, name)) :
-			os.makedirs("%sconserved_%s" %(subscript, name))
-	else :
-		if not os.path.exists("%ssemiconserved_%s" %(subscript, name)) :
-			os.makedirs("%ssemiconserved_%s" %(subscript, name))
+def mkdirs(name) :
+	if not os.path.exists("conserved_%s" %(name)) :
+		os.makedirs("conserved_%s" %(name))
 
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> [-pep or -dna] [-c (conserved) or -s (semiconserved)] <solution.disco>\n' %program_path
+	print '\nUsage: %s <number_of_organisms> <orthodb.txt> <orthodb.fasta>\n' %program_path
 
-conserved = True
 
 def main(args) :
-	global conserved
-	if len(args) != 5 or ( args[2] != '-pep' and args[2] != '-dna' ) or ( args[3] != '-c' and args[3] != '-s' ) :
+	if len(args) != 4 :
 		usage(args[0])
 		return
-	subscript = "pep_"
-	if (args[2] == '-dna') :
-		subscript = 'dna_'
-	if (args[3] == '-s') :
-		conserved = False
-		print 'Running semiconserved clustering.'
-	else :
-		print 'Running conserved clustering.'
-	# Read multiparanoid
-	print 'Reading disco input'
-	clusters = read_multiparanoid(int(args[1]), args[4])
+	print 'Running conserved clustering.'
+	print 'Reading txt input'
+	clusters = read_txt(int(args[1]), args[2])
 	if len(clusters) == 0 :
+		print 'No clusters found.'
 		return
 	# Assume there is a cluster containing all the organisms
 	# Look in bin given by args[1] (number of organisms)
@@ -218,9 +204,9 @@ def main(args) :
 	# time
 	checkpoint_time()
 	
-	# Read fasta files
+	# Read fasta file
 	print "Gathering clusters"
-	clusters = read_fastas(clusters, all_names, (args[2] == '-dna'))
+	clusters = read_fasta(clusters, all_names, args[3])
 	
 	# time
 	checkpoint_time()
@@ -231,7 +217,7 @@ def main(args) :
 	
 	print 'There are %d clusters in total.' %total 
 
-	mkdirs(args[4], subscript)	
+	mkdirs(args[2])
 
 	counter = 1
 	percent = total / 10
@@ -242,8 +228,10 @@ def main(args) :
 		for cluster in clusters[bin] :
 			if counter % percent == 0 :
 				print "Progress: %.2f%%" %(counter * 100.0 / total)
-			write_cluster(cluster, all_names, args[4], subscript, counter)
+				checkpoint_time()
+			write_cluster(cluster, all_names, args[2], counter)
 			counter += 1
+	print "Done."
 	# time
 	checkpoint_time()
 
