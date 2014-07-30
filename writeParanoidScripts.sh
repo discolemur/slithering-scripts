@@ -32,11 +32,10 @@ function create_script ()
         echo "#SBATCH -J inparanoid_$file   # job name" >> $file.sh
         echo "#SBATCH --mail-user=nick.j.g12@gmail.com   # email address" >> $file.sh
         echo "#SBATCH --mail-type=FAIL" >> $file.sh
-        echo "#SBATCH -o slurm_outputs/inparanoid_output_$file.txt" >> $file.sh
-        echo "#SBATCH -e slurm_outputs/inparanoid_error_$file.err" >> $file.sh
+        echo "#SBATCH -o inparanoid_output_$file.txt" >> $file.sh
+        echo "#SBATCH -e inparanoid_error_$file.err" >> $file.sh
         echo "" >> $file.sh
-	echo "/fslhome/njensen6/software/shell_scripts/run_inparanoid.sh $1 $2" >> $file.sh
-#	echo "./inparanoid_hardcoded_locations.pl $1 $2" >> $file.sh
+	echo "run_inparanoid.sh $1 $2" >> $file.sh
 }
 
 array=(*.pep)

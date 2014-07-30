@@ -13,4 +13,4 @@ cp /fslhome/njensen6/software/inparanoid_to_copy/* ./
 cp ../$1 ./
 cp ../$2 ./
 
-./inparanoid_hardcoded_locations.pl $1 $2
+#./inparanoid_hardcoded_locations.pl $1 $2
