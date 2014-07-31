@@ -7,14 +7,19 @@
 
 # The final output is called "solution.disco"
 
+# LOCATIONS:
+create_map=/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/multiparanoid_solution/create_special_paranoid_mappings.py
+multi=/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/multiparanoid_solution/improved_multiparanoid
+decode_map=/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/multiparanoid_solution/decode_map.py
+
 # Produce key and cipher (map.disco and combined.disco)
-create_special_paranoid_mappings.py
+$create_map
 # Run cipher through my multi program and produce encrypted result (merged.disco)
-improved_multiparanoid combined.disco merged.disco
+$multi combined.disco merged.disco
 # Remove cipher
 rm combined.disco
 # Decode the encrypted result using the key
-decode_map.py merged.disco map.disco solution.disco
+$decode_map merged.disco map.disco solution.disco
 # Remove encrypted result
 rm merged.disco
 # Remove key
