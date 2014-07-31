@@ -16,6 +16,6 @@ do
 	echo "#SBATCH -o pipeline_output_$file.txt" >> $file.sh
 	echo "#SBATCH -e pipeline_error_$file.err" >> $file.sh
 	echo "" >> $file.sh
-	echo "/fslhome/njensen6/software/runTransdecoder.sh $file $file.gff" >> $file.sh
+	echo "/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/runTransdecoder.sh $file $file.gff" >> $file.sh
 done
 

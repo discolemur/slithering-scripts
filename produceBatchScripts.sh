@@ -18,7 +18,7 @@ do
 	echo "#SBATCH -o pipeline_output_$file.txt" >> $file.sh
 	echo "#SBATCH -e pipeline_error_$file.err" >> $file.sh
 	echo "" >> $file.sh
-	echo "/fslhome/njensen6/fsl_groups/fslg_BybeeLab/software/trinotate_dependencies/trinotate_minus_trinity.sh ${PWD}/$file $file.gff" >> $file.sh
+	echo "/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/trinotate_minus_trinity.sh ${PWD}/$file $file.gff" >> $file.sh
 done
 
 mv *.fasta.sh annotations

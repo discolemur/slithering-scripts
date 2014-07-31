@@ -35,7 +35,7 @@ function create_script ()
         echo "#SBATCH -o inparanoid_output_$file.txt" >> $file.sh
         echo "#SBATCH -e inparanoid_error_$file.err" >> $file.sh
         echo "" >> $file.sh
-	echo "run_inparanoid.sh $1 $2" >> $file.sh
+	echo "/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/run_inparanoid.sh $1 $2" >> $file.sh
 }
 
 array=(*.pep)

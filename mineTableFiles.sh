@@ -1,6 +1,6 @@
 #! /bin/bash
 
-location="/fslhome/njensen6/fsl_groups/fslg_BybeeLab/compute/TRANSCRIPTOMES/multiparanoid/InParanoidTables"
+location="/fslgroup/fslg_BybeeLab/compute/TRANSCRIPTOMES/multiparanoid/InParanoidTables"
 echo "Find mined files in: $location"
 
 function is_valid ()
