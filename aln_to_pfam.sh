@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 2 ]
 then
-	echo "Usage: $0 <directory containing aln files> <name of directory for hmm files>"
+	echo "Usage: $0 <directory containing aln files> <name of directory for msf files>"
 	exit
 fi
 
@@ -13,6 +13,6 @@ do
 #	echo $file
 	name="${file##*/}"
 	name="${name%.*}"
-	output=$2/$name.hmm
+	output=$2/$name.msf
 	/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/fastaToPfam.py $file $output
 done

@@ -14,5 +14,5 @@ do
 	name="${file##*/}"
 	name="${name%.*}"
 	output=$2/$name.hmm
-	hmmbuild -n $name $output $file
+	hmmbuild --amino -n $name $output $file
 done
