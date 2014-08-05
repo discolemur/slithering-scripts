@@ -133,6 +133,18 @@ def give_gene_to_cluster(clusters, organism, gene, data) :
 				return clusters
 	return clusters
 
+def get_gene_id(line, uses_dna) :
+	id = ''
+	line = line.strip()
+	line = line.split(' ')
+	if len(line) == 1 :
+		id = line[0][1:]
+	elif uses_dna :
+		id = line[0][1:]
+	else :
+		id = line[-1].split(':')[0]
+	return id
+
 def read_fastas(clusters, all_names, uses_dna) :
 	for name in all_names :
 		filename = name + '.pep'
@@ -145,14 +157,13 @@ def read_fastas(clusters, all_names, uses_dna) :
 		for line in in_file :
 			if line[0] == '>' :
 				# Use previous gene
+				if data == '' and gene != '' :
+					print 'Error: did not get gene data for id %s' %gene
 				clusters = give_gene_to_cluster(clusters, name, gene, data)
 				# Prepare to get new gene
-				line = line.strip()
-				line = line.split(' ')
-				if len(line) == 1 :
-					gene = line[0][1:]
-				else :
-					gene = line[-1].split(':')[0]
+				gene = get_gene_id(line, uses_dna)
+				if gene == '' :
+					print 'Error: did not parse gene id from %s' %line
 				data = ''
 			else :
 				data = data + line
