@@ -5,22 +5,22 @@ import os
 import subprocess
 import timeit
 
-# Species have only unique genes, no paralogy
-# Missing species are filled in with dashes after alignment
-# Clusters have a bin number for how many organisms are present in each cluster
-
-
-# This script
-# Takes disco solution to multiparanoid
-# And associated fasta files and
-# Produces clusters (conserved or semiconserved)
-
-# Assume the following about filenames:
-# If the peptide files have format "filename.pep"
-# Then the DNA files have format "filename.fasta"
-
-# Assume DNA/AA fasta files are located in the current directory
-
+def info() {
+	print 'Species have only unique genes, no paralogy'
+	print 'Missing species are filled in with dashes after alignment'
+	print 'Clusters have a bin number for how many organisms are present in each cluster'
+	print ''
+	print 'This script'
+	print 'Takes disco solution to multiparanoid'
+	print 'And associated fasta files and'
+	print 'Produces clusters (conserved or semiconserved)'
+	print ''
+	print 'Assume the following about filenames:'
+	print 'If the peptide files have format filename.pep'
+	print 'Then the DNA files have format filename.fasta'
+	print ''
+	print 'Assume DNA/AA fasta files are located in the current directory'
+}
 #######################################################
 # Algorithm:
 #	For each fasta file
@@ -194,6 +194,7 @@ conserved = True
 
 def main(args) :
 	global conserved
+	info()
 	if len(args) != 5 or ( args[2] != '-pep' and args[2] != '-dna' ) or ( args[3] != '-c' and args[3] != '-s' ) :
 		usage(args[0])
 		return
