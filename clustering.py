@@ -59,11 +59,12 @@ class Cluster(object) :
 	def get_bin(self) :
 		return len(self.genes)
 
-	def add_gene(self, organism, orf) :
+	def add_gene(self, organism, id) :
+		print id
 		if organism in self.genes :
-			self.genes[organism].append(orf)
+			self.genes[organism].append(id)
 		else :
-			self.genes[organism] = [orf]
+			self.genes[organism] = [id]
 
 	def get_all_names_sorted(self) :
 		return sorted(self.genes.iterkeys())
@@ -80,8 +81,8 @@ class Cluster(object) :
 				return True
 		return False
 
-	def give(self, organism, data) :
-		self.data[organism] = data
+	def give(self, organism, seq) :
+		self.data[organism] = seq
 
 	def save(self, out_file, all_names, counter) :
 		for organism in all_names :
@@ -137,12 +138,16 @@ def get_gene_id(line, uses_dna) :
 	id = ''
 	line = line.strip()
 	line = line.split(' ')
-	if len(line) == 1 :
+	if line[0] == '' :
+		line = line[1:]
+	# Handle simple case and normal fasta format case
+	if uses_dna or len(line) == 1:
 		id = line[0][1:]
-	elif uses_dna :
-		id = line[0][1:]
-	else :
+	# Handle complex case for transdecoder headers
+	elif not uses_dna :
 		id = line[-1].split(':')[0]
+	else :
+		print 'Error: unable to parse header.'
 	return id
 
 def read_fastas(clusters, all_names, uses_dna) :
