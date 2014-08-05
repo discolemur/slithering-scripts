@@ -5,19 +5,20 @@ import os
 import subprocess
 import timeit
 
-# Species have only unique genes, no paralogy
-
-# This script
-# Takes disco solution to multiparanoid
-# And associated gff files
-# Producing a file with clusters (semi or conserved) with GO terms
-
-# Assumes the following about file names:
-# For each organism present in the disco file,
-# there is a gff file named organism.gff
-
-# OUTPUT FORMAT:
-# Cluster	Species	Gene	GO-terms
+def info() :
+	print 'Species have only unique genes, no paralogy'
+	print ''
+	print 'This script:'
+	print 'Takes disco solution to multiparanoid'
+	print 'And associated gff files'
+	print 'Producing a file with clusters (semi or conserved) with GO terms'
+	print '' 
+	print 'Assumes the following about file names:'
+	print 'For each organism present in the disco file,'
+	print 'there is a gff file named organism.gff'
+	print '' 
+	print 'OUTPUT FORMAT:'
+	print 'Cluster	Species	Gene	GO-terms'
 
 class Annotation(object) :
 	def __init__(self) :

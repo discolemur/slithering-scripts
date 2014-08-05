@@ -5,7 +5,7 @@ import os
 import subprocess
 import timeit
 
-def info() {
+def info() :
 	print 'Species have only unique genes, no paralogy'
 	print 'Missing species are filled in with dashes after alignment'
 	print 'Clusters have a bin number for how many organisms are present in each cluster'
@@ -20,7 +20,7 @@ def info() {
 	print 'Then the DNA files have format filename.fasta'
 	print ''
 	print 'Assume DNA/AA fasta files are located in the current directory'
-}
+
 #######################################################
 # Algorithm:
 #	For each fasta file
@@ -160,9 +160,8 @@ def read_fastas(clusters, all_names, uses_dna) :
 	return clusters
 
 def write_cluster(cluster, all_names, multiparanoid, subscript, counter) :
-	# This is the slowest part of the program now.
 #	print 'Writing cluster %d' %counter
-	filename = "tmp_cluster"
+	filename = "tmp_%s_%d_%s_%d" %(subscript, counter, multiparanoid, cluster.get_bin())
 	out_file = open(filename, 'w')
 	cluster.save(out_file, all_names, counter)
 	out_file.close()
