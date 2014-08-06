@@ -54,13 +54,13 @@ class Cluster(object) :
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
 				return False
+		print self.genes
 		return True
 
 	def get_bin(self) :
 		return len(self.genes)
 
 	def add_gene(self, organism, id) :
-		print id
 		if organism in self.genes :
 			self.genes[organism].append(id)
 		else :
@@ -71,29 +71,50 @@ class Cluster(object) :
 
 	def print_all(self) :
 		for key in self.genes :
-			print key
+			print 'organism: %s' %key
+			print 'genes:'
 			print self.genes[key]
-			print key + ".fasta"
 
 	def contains(self, organism, gene) :
 		if organism in self.genes :
 			if gene in self.genes[organism] :
+				print '1'
 				return True
 		return False
 
-	def give(self, organism, seq) :
+	def set_sequence(self, organism, seq) :
 		self.data[organism] = seq
+		print '2'
 
 	def save(self, out_file, all_names, counter) :
+		if len(self.data) == 0 :
+			print 'ERROR! All sequences were lost in this cluster %d.' %counter
+			out_file.write('ERROR! All sequences were lost in this cluster %d.' %counter)
+			return
 		for organism in all_names :
-			out_file.write('>%d|%s|%s\n' %(counter, organism, self.genes[organism][0]))
+			id = ''
+			if organism in self.genes :
+				id = self.genes[organism][0]
+			out_file.write('>%d|%s|%s\n' %(counter, organism, id))
 			if organism in self.data :
-				out_file.write(self.data[organism])
+				seq = self.data[organism]
+				out_file.write(seq)
 				out_file.write('\n')
+
+def add_cluster(clusters, cluster, num_organisms) :
+	if cluster.is_valid(num_organisms) :
+		bin = cluster.get_bin()
+		if bin in clusters :
+			clusters[bin].append(cluster)
+		else :
+			clusters[bin] = [cluster]
+	return clusters
+
 # Input format:
-# cluster	organism	gene
+# cluster	organism.pep	gene
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
+	print 'Reading %s . . .' %multiparanoid
 	in_file = open(multiparanoid, 'r')
 	clusters = {}
 	i = 0
@@ -107,15 +128,13 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		# line indicates a new cluster
 		elif i != int(line[0]) :
 			i = int(line[0])
-			if cluster.is_valid(num_organisms) :
-				bin = cluster.get_bin()
-				if bin in clusters :
-					clusters[bin].append(cluster)
-				else :
-					clusters[bin] = [cluster]
+			clusters = add_cluster(clusters, cluster, num_organisms)
 			cluster = Cluster()
 		# line goes in current cluster
-		cluster.add_gene(line[1].split('.')[0], line[2])
+		# remove the file extension
+		organism = line[1].split('.')[0]
+		id = line[2]
+		cluster.add_gene(organism, id)
 	in_file.close()
 	if 0 in clusters :
 		del clusters[0]
@@ -123,26 +142,27 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
 	return clusters
 
-
-def give_gene_to_cluster(clusters, organism, gene, data) :
-	if gene == '' or data == '' :
+def give_gene_to_cluster(clusters, organism, id, seq) :
+	if id == '' or seq == '' :
 		return clusters
 	for key in clusters :
 		for cluster in clusters[key] :
-			if cluster.contains(organism, gene) :
-				cluster.give(organism, data)
+			if cluster.contains(organism, id) :
+				cluster.set_sequence(organism, seq)
 				return clusters
 	return clusters
 
 def get_gene_id(line, uses_dna) :
 	id = ''
 	line = line.strip()
+	# Remove '>'
+	line = line[1:]
 	line = line.split(' ')
 	if line[0] == '' :
 		line = line[1:]
 	# Handle simple case and normal fasta format case
 	if uses_dna or len(line) == 1:
-		id = line[0][1:]
+		id = line[0]
 	# Handle complex case for transdecoder headers
 	elif not uses_dna :
 		id = line[-1].split(':')[0]
@@ -157,21 +177,21 @@ def read_fastas(clusters, all_names, uses_dna) :
 			filename = name + '.fasta'
 		print 'Reading %s...' %filename
 		in_file = open(filename, 'r')
-		gene = ''
-		data = ''
+		id = ''
+		seq = ''
 		for line in in_file :
 			if line[0] == '>' :
 				# Use previous gene
-				if data == '' and gene != '' :
-					print 'Error: did not get gene data for id %s' %gene
-				clusters = give_gene_to_cluster(clusters, name, gene, data)
+				if seq == '' and id != '' :
+					print 'Error: did not get gene sequence for id %s' %id
+				clusters = give_gene_to_cluster(clusters, name, id, seq)
 				# Prepare to get new gene
-				gene = get_gene_id(line, uses_dna)
-				if gene == '' :
+				id = get_gene_id(line, uses_dna)
+				if id == '' :
 					print 'Error: did not parse gene id from %s' %line
-				data = ''
+				seq = ''
 			else :
-				data = data + line
+				seq = seq + line
 		in_file.close()
 	return clusters
 
@@ -247,7 +267,7 @@ def main(args) :
 	
 	print 'There are %d clusters in total.' %total 
 
-	mkdirs(args[4], subscript)	
+	mkdirs(args[4], subscript)
 
 	counter = 1
 	percent = total / 10
