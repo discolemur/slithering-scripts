@@ -81,6 +81,7 @@ def main(args) :
 	for elem in all_genes :
 		mapfile.write("%d\t%s\t%s\n" %(all_genes[elem], elem.species, elem.gene))
 	mapfile.close()
+	print 'Done writing map.disco'
 
 if __name__ == "__main__" :
 	main(sys.argv)

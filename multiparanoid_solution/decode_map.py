@@ -67,15 +67,18 @@ def main(args) :
 	if (len(args) != 4) :
 		print "Usage: %s <input_filename> <map.disco> <output_filename>" %args[0]
 		exit(1)
+	print 'Decoding %s using %s' %(args[1], args[2])
 	mapfile = open(args[2], 'r')
 	map = read_map(mapfile)
 	output = open(args[3], 'w')
 	input = open(args[1], 'r')
 	data = sort_input(input)
+	print 'Writing output to %s' %args[3]
 	create_output(data, map, output)
 	mapfile.close()
 	input.close()
 	output.close()
+	print 'Done decoding.'
 
 if __name__ == "__main__" :
 	main(sys.argv)
