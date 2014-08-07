@@ -4,16 +4,13 @@ for file in *
 do
 	if [ "${file##*.}" == "pep" ]
 	then
-		../prep_fasta_for_inparanoid.py $file $file.prepared
+		prep_fasta_for_inparanoid.py $file $file.prepared
 	fi
 done
 
 rm *.pep
 
-for file in *
+for file in *.prepared
 do
-        if [ "${file##*.}" == "prepared" ]
-        then
-                mv $file "${file%.*}"
-        fi
+	mv $file "${file%.*}"
 done

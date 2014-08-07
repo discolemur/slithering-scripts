@@ -27,7 +27,7 @@ def main(args) :
 			if '.' in line :
 				line = line.split('.')
 				line = line[1]
-                        fasta_out.write(line)
+                        fasta_out.write('>%s' %line)
 			if line != '' :
 				fasta_out.write('\n')
                 else :
