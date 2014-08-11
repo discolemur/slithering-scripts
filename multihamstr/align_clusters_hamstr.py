@@ -1,10 +1,13 @@
 #! /bin/env python
 
 import sys
+sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 import glob
 import os
 import subprocess
+from helpers import do_progress_update
 
+nowhere = open(os.devnull, 'w')
 
 def info() :
 	print 'This program must be run inside a directory of clusters (output from multihamstr.py)'
@@ -57,26 +60,22 @@ def is_valid(file, num_sp, conserve) :
 	else :
 		return is_semiconserved(file, num_sp)
 
+def handle_file(file, num_sp, conserve, dir) :
+	global nowhere
+	if is_valid(file, num_sp, conserve) :
+		new_name = file.split('.')[0] + '.aln'
+		subprocess.call("mafft %s > %s/%s" %(file, dir, new_name), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+
 def align_files(files, num_sp, conserve) :
-	nowhere = open(os.devnull, 'w')
 	dir = 'conserved_clusters'
 	if not conserve :
 		dir = 'semiconserved_clusters'
-	total = len(files)
-	counter = 0
-	percent = total / 10
 	if not os.path.exists(dir) :
 		os.makedirs(dir)
-	for file in files :
-		counter += 1
-		if counter % percent == 0 :
-			print "Progress: (%d/%d) %.2f%%" %(counter, total, (1.0 * counter)/total)
-		if is_valid(file, num_sp, conserve) :
-			new_name = file.split('.')[0] + '.aln'
-			subprocess.call("mafft %s > %s/%s" %(file, dir, new_name), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	do_progress_update(files, handle_file, num_sp, conserve, dir)
 
 def complete_clusters(files, num_sp) :
-	nowhere = open(os.devnull, 'w')
+	global nowhere
 	dir = 'complete_clusters'
 	total = len(files)
 	counter = 0

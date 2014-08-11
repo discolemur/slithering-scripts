@@ -13,4 +13,5 @@ def do_progress_update(list, action, *args) :
 		if (counter % checkpoint == 0) :
 			print('Progress: %d/%d (%.2f%%)' %(counter, total, (counter * 100.0 / total)))
 		action(item, *args)
+		counter += 1
 
