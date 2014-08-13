@@ -7,7 +7,7 @@ import shutil
 
 def main(args) :
 	if len(args) != 2 :
-		print "Usage: %s <fasta>" %args[0]
+		print("Usage: %s <fasta>" %args[0])
 		return 1
 	file = open(args[1], 'r')
 	tmp = 'tmp_aln_for_script'

@@ -59,7 +59,7 @@ class Cluster(object) :
 			self.genes[organism] = [data]
 
 	def get_all_names_sorted(self) :
-		return sorted(self.genes.iterkeys())
+		return sorted(list(self.genes.keys()))
 
 	def contains(self, organism, gene) :
 		if organism in self.genes :

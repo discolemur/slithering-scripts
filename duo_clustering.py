@@ -48,7 +48,7 @@ class Cluster(object) :
 
 	# It is important to sort the keys so that the organisms are always in the same order
 	def write_output(self, out_file, uses_dna) :
-		for key in sorted(self.genes.iterkeys()) :
+		for key in sorted(list(self.genes.keys())) :
 			filename = key
 			if (uses_dna) :
 				filename = filename + '.fasta'

@@ -7,8 +7,8 @@
 import sys
 
 def usage(filename) :
-        print 'Usage: '
-        print filename + ' <fasta in> <fasta out>'
+        print('Usage: ')
+        print(filename + ' <fasta in> <fasta out>')
 
 def main(args) :
         if len(args) != 3 :

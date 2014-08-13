@@ -67,7 +67,7 @@ class Cluster(object) :
 			self.genes[organism] = [gene]
 
 	def get_all_names_sorted(self) :
-		return sorted(self.genes.iterkeys())
+		return sorted(list(self.genes.keys()))
 
 	def print_all(self) :
 		for key in self.genes :

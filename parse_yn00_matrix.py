@@ -41,7 +41,7 @@ def parse_and_write(infilename, outfilename) :
 
 def main(args) :
 	if (len(args) != 3) :
-		print "Usage: %s <input_matrix> <output_filename>" %args[0]
+		print("Usage: %s <input_matrix> <output_filename>" %args[0])
 		exit()
 	parse_and_write(args[1], args[2])
 

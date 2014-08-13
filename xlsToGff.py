@@ -68,10 +68,10 @@ def getAnnotation(split_line) :
 def formatLine(split_line) :
 	position = parsePosition(split_line[5])
 	if len(position) != 3 :
-		print 'Position data does not exist when blastp does.'
-		print 'This is probably a big error'
-		print split_line[5]
-		print position
+		print('Position data does not exist when blastp does.')
+		print('This is probably a big error')
+		print(split_line[5])
+		print(position)
 	new_line = ''
 	# contig_id
 	new_line = new_line + '%s' %split_line[0]
@@ -121,7 +121,7 @@ def convertFile(infile, outfile) :
 				outfile.write(formatLine(line))
 
 def usage(program_path) :
-	print '\nUsage: %s <inputfile.xls> <outputfile.gff>\n' %program_path
+	print('\nUsage: %s <inputfile.xls> <outputfile.gff>\n' %program_path)
 
 
 def main(args) :
