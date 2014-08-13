@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# This script goes one directory deep, creates super.fasta if not exists, and runs iqtree as a batch if batch not already exists.
+
 for item in *
 do
 	if ! [ -d $item ]
@@ -32,7 +34,7 @@ do
 	echo "    super exists."
 	echo '#!/bin/bash' > iqtreeBatch.sh
 	echo '' >> iqtreeBatch.sh
-	echo '#SBATCH --time=72:00:00   # walltime' >> iqtreeBatch.sh
+	echo '#SBATCH --time=120:00:00   # walltime' >> iqtreeBatch.sh
 	echo '#SBATCH --ntasks=32   # number of processor cores (i.e. tasks)' >> iqtreeBatch.sh
 	echo '#SBATCH --nodes=1   # number of nodes' >> iqtreeBatch.sh
 	echo '#SBATCH --mem-per-cpu=8G   # memory per CPU core' >> iqtreeBatch.sh
