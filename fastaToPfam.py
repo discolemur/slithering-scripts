@@ -5,8 +5,8 @@ from Bio import AlignIO
 
 def main(args) :
 	if (len(args) != 3) :
-		print "Gimme an input and output file next time.\n"
-		print "Usage: %s <input.fasta> <output.msf>\n" %args[0]
+		print("Gimme an input and output file next time.\n")
+		print("Usage: %s <input.fasta> <output.msf>\n" %args[0])
 		return 1
 	input = open(args[1], 'r')
 	output = open(args[2], 'w')

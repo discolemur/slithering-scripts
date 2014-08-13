@@ -11,7 +11,7 @@ import sys
 # ...
 
 def usage(name) :
-	print "Usage: %s" %name
+	print ("Usage: %s" %name)
 
 def get_organisms(file) :
 	in_file = open(file, 'r')
@@ -21,7 +21,7 @@ def get_organisms(file) :
 		if line[0] == '>' :
 			result.append(line.split(' ')[1])
 	in_file.close()
-	print result
+	print(result)
 	return result
 
 def count_line(line) :

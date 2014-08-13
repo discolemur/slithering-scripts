@@ -37,7 +37,7 @@ def checkpoint_time() :
 	global start
 	if timing :
 		checkpoint = timeit.default_timer()
-		print 'Time so far: %d' %(checkpoint - start)
+		print ('Time so far: %d' %(checkpoint - start))
 
 class Cluster(object) :
 # genes  ===   map from organism to list of genes
@@ -49,11 +49,11 @@ class Cluster(object) :
 	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
 		if len(self.genes) != num_organisms :
-	#		print 'Invalid cluster: has %d organisms' %len(self.genes)
+	#		print ('Invalid cluster: has %d organisms' %len(self.genes))
 			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
-	#			print 'Invalid: has paralogy with %s, %s' %(key, self.genes[key])
+	#			print ('Invalid: has paralogy with %s, %s' %(key, self.genes[key]))
 				return False
 		return True
 
@@ -71,9 +71,9 @@ class Cluster(object) :
 
 	def print_all(self) :
 		for key in self.genes :
-			print key
-			print self.genes[key]
-			print key + ".fasta"
+			print(key)
+			print(self.genes[key])
+			print(key + ".fasta")
 
 	def contains(self, organism, gene) :
 		if organism in self.genes :
@@ -115,13 +115,13 @@ def read_txt(num_organisms, txt) :
 		# line goes in current cluster
 		organism = line[5]
 		gene = line[1]
-#		print 'Organism: %s, Gene: %s' %(organism, gene)
+#		print('Organism: %s, Gene: %s' %(organism, gene))
 		cluster.add_gene(organism, gene)
 	in_file.close()
 	if 0 in clusters :
 		del clusters[0]
 	for bin in clusters :
-		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
+		print('There are %d clusters in bin %d' %(len(clusters[bin]), bin))
 	return clusters
 
 
@@ -137,7 +137,7 @@ def give_gene_to_cluster(clusters, organism, gene, data) :
 
 def read_fasta(clusters, all_names, fasta) :
 	total = sum(1 for line in open(fasta))
-	print 'Reading %s...' %fasta
+	print ('Reading %s...' %fasta)
 	in_file = open(fasta, 'r')
 	count = 0
 	percent = total / 10
@@ -159,19 +159,19 @@ def read_fasta(clusters, all_names, fasta) :
 			data = data + line
 		count += 1
 		if count % percent == 0 :
-			print "Progress: %.2f%%" %(count * 100.0 / total)
+			print ("Progress: %.2f%%" %(count * 100.0 / total))
 	give_gene_to_cluster(clusters, organism, gene, data)
 	in_file.close()
 	return clusters
 
 def write_cluster(cluster, all_names, txt, counter) :
 	# This is the slowest part of the program now.
-#	print 'Writing cluster %d' %counter
+#	print ('Writing cluster %d' %counter)
 	filename = "tmp_cluster"
 	out_file = open(filename, 'w')
 	cluster.save(out_file, all_names, counter)
 	out_file.close()
-#	print 'Running mafft ...'
+#	print ('Running mafft ...')
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
 	subprocess.call("mafft %s > conserved_%s/cluster%d.aln" %(filename, txt, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
@@ -183,18 +183,18 @@ def mkdirs(name) :
 
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> <orthodb.txt> <orthodb.fasta>\n' %program_path
+	print ('\nUsage: %s <number_of_organisms> <orthodb.txt> <orthodb.fasta>\n' %program_path)
 
 
 def main(args) :
 	if len(args) != 4 :
 		usage(args[0])
 		return
-	print 'Running conserved clustering.'
-	print 'Reading txt input'
+	print ('Running conserved clustering.')
+	print ('Reading txt input')
 	clusters = read_txt(int(args[1]), args[2])
 	if len(clusters) == 0 :
-		print 'No clusters found.'
+		print ('No clusters found.')
 		return
 	# Assume there is a cluster containing all the organisms
 	# Look in bin given by args[1] (number of organisms)
@@ -205,7 +205,7 @@ def main(args) :
 	checkpoint_time()
 	
 	# Read fasta file
-	print "Gathering clusters"
+	print ("Gathering clusters")
 	clusters = read_fasta(clusters, all_names, args[3])
 	
 	# time
@@ -215,7 +215,7 @@ def main(args) :
 	for bin in clusters :
 		total += len(clusters[bin])
 	
-	print 'There are %d clusters in total.' %total 
+	print ('There are %d clusters in total.' %total )
 
 	mkdirs(args[2])
 
@@ -227,11 +227,11 @@ def main(args) :
 	for bin in clusters :
 		for cluster in clusters[bin] :
 			if counter % percent == 0 :
-				print "Progress: %.2f%%" %(counter * 100.0 / total)
+				print ("Progress: %.2f%%" %(counter * 100.0 / total))
 				checkpoint_time()
 			write_cluster(cluster, all_names, args[2], counter)
 			counter += 1
-	print "Done."
+	print ("Done.")
 	# time
 	checkpoint_time()
 

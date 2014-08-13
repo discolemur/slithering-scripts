@@ -65,14 +65,14 @@ def grab_and_write_sequences(locations, fasta_in, fasta_out) :
 			for char in line :
 				if counter >= loc.begin and counter <= loc.end :
 					if (char == '>') :
-						print "There may be a big phat error in counting base pairs."
+						print ("There may be a big phat error in counting base pairs.")
 					fasta_out.write(char)
 				if counter == loc.end :
 					search = False
 				counter += 1
 
 def usage(program_path) :
-	print '\nUsage: %s <peptides.pep> <sequences.fasta> <outputfile.fasta>\n' %program_path
+	print ('\nUsage: %s <peptides.pep> <sequences.fasta> <outputfile.fasta>\n' %program_path)
 
 def main(args) :
 	if len(args) != 4 :

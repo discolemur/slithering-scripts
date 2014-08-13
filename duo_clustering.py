@@ -27,17 +27,17 @@ class Cluster(object) :
 
 	def is_valid(self, num_organisms) :
 		if len(self.genes) != num_organisms :
-#			print 'bad nums'
-#			print self.genes
+#			print('bad nums')
+#			print(self.genes)
 			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 2:
-#				print 'bad organism'
-#				print key
-#				print self.genes[key]
+#				print('bad organism')
+#				print(key)
+#				print(self.genes[key])
 				return False
-#		print "valid"
-#		print self.genes
+#		print("valid")
+#		print(self.genes)
 		return True
 
 	def add_gene(self, organism, orf) :
@@ -78,20 +78,20 @@ class Cluster(object) :
 
 	def print_all(self) :
 		for key in self.genes :
-			print key
-			print self.genes[key]
-			print key + ".fasta"
+			print(key)
+			print(self.genes[key])
+			print(key + ".fasta")
 
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> [-pep or -dna] <output.disco>\n' %program_path
+	print('\nUsage: %s <number_of_organisms> [-pep or -dna] <output.disco>\n' %program_path)
 
 # Input format:
 # cluster	organism	gene
 # Assumes num_organisms is an int
 def read_multiparanoid(num_organisms, multiparanoid) :
 	if (num_organisms < 2) :
-		print "I need more than %d organisms." %num_organisms
+		print("I need more than %d organisms." %num_organisms)
 	in_file = open(multiparanoid, 'r')
 	clusters = []
 	i = 0
@@ -117,7 +117,7 @@ def mine_clusters(clusters, uses_dna, multiparanoid, subscript) :
 	i = 1
 	nowhere = open(os.devnull, 'w')
 	for cluster in clusters :
-		print "Working on cluster %d" %i
+		print("Working on cluster %d" %i)
 		tmp = "%d_tmp" %i
 		out_file = open(tmp, 'w')
 		cluster.write_output(out_file, uses_dna)
@@ -133,14 +133,14 @@ def main(args) :
 	subscript = "pep_"
 	if (args[2] == '-dna') :
 		subscript = 'dna_'
-	print "Reading disco input"
+	print("Reading disco input")
 	clusters = read_multiparanoid(int(args[1]), args[3])
-	print "%d clusters found." %len(clusters)
+	print("%d clusters found." %len(clusters))
 	if len(clusters) == 0 :
 		return
 	if not os.path.exists("%sduo_%s" %(subscript, args[3])) :
 		os.makedirs("%sduo_%s" %(subscript, args[3]))
-	print "Gathering clusters"
+	print("Gathering clusters")
 	mine_clusters(clusters, (args[2] == '-dna'), args[3], subscript)
 
 if __name__ == "__main__" :

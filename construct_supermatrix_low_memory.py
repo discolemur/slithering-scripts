@@ -9,7 +9,7 @@ import glob
 # Assume the organisms in the clusters always come in the same order
 
 def usage(program_path) :
-	print '\nUsage: %s\n' %program_path
+	print ('\nUsage: %s\n' %program_path)
 
 # Because all organisms come in order, we can pull headers from any sample file
 def produce_headers(sampleFile) :
@@ -43,9 +43,9 @@ def add_organism_to_matrix(files, headers, index, num_organisms, superMatrix) :
 				if (counter == index) :
 					getting = True
 				if counter < 1 or counter > num_organisms :
-					print "Big stinking error, counter: %d" %counter
-					print "num_organisms: %d" %num_organisms
-					print line
+					print( "Big stinking error, counter: %d" %counter)
+					print ("num_organisms: %d" %num_organisms)
+					print (line)
 				counter += 1
 			elif getting :
 				line = line.strip()
@@ -66,9 +66,9 @@ def main(args) :
 	num_organisms = len(headers)
 	for index in range(1, num_organisms + 1) :
 		add_organism_to_matrix(files, headers, index, num_organisms, superMatrix)
-		print "Progress: %d (%.2f%%)" %(index, index * 100.00 / num_organisms)
+		print ("Progress: %d (%.2f%%)" %(index, index * 100.00 / num_organisms))
 	superMatrix.close()
-	print 'Output is found in %s' %super_file
+	print ('Output is found in %s' %super_file)
 
 if __name__ == "__main__" :
 	main(sys.argv)

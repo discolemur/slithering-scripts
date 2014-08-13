@@ -270,6 +270,7 @@ def writeOutput(clusters, all_names, total) :
 def determineOutputType(args) :
 	global output_type
 	global dir_name
+	global multiparanoid
 	output_type = args.output_type
 	subscript = 'pep_'
 	if args.uses_dna :

@@ -6,19 +6,19 @@ import subprocess
 import timeit
 
 def info() :
-	print 'Species have only unique genes, no paralogy'
-	print ''
-	print 'This script:'
-	print 'Takes disco solution to multiparanoid'
-	print 'And associated gff files'
-	print 'Producing a file with clusters (semi or conserved) with GO terms'
-	print '' 
-	print 'Assumes the following about file names:'
-	print 'For each organism present in the disco file,'
-	print 'there is a gff file named organism.gff'
-	print '' 
-	print 'OUTPUT FORMAT:'
-	print 'Cluster	Species	Gene	GO-terms'
+	print('Species have only unique genes, no paralogy')
+	print('')
+	print('This script:')
+	print('Takes disco solution to multiparanoid')
+	print('And associated gff files')
+	print('Producing a file with clusters (semi or conserved) with GO terms')
+	print('' )
+	print('Assumes the following about file names:')
+	print('For each organism present in the disco file,')
+	print('there is a gff file named organism.gff')
+	print('' )
+	print('OUTPUT FORMAT:')
+	print('Cluster	Species	Gene	GO-terms')
 
 class Annotation(object) :
 	def __init__(self) :
@@ -117,7 +117,7 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 	if 0 in clusters :
 		del clusters[0]
 	for bin in clusters :
-		print 'There are %d clusters in bin %d' %(len(clusters[bin]), bin)
+		print('There are %d clusters in bin %d' %(len(clusters[bin]), bin))
 	return clusters
 
 
@@ -151,7 +151,7 @@ def parse_gff_line(line, clusters, name):
 def read_all_gff_files(clusters, all_names) :
 	for name in all_names :
 		filename = name + '.gff'
-		print 'Reading %s...' %filename
+		print('Reading %s...' %filename)
 		in_file = open(filename, 'r')
 		gene = ''
 		term = ''
@@ -161,7 +161,7 @@ def read_all_gff_files(clusters, all_names) :
 	return clusters
 
 def usage(program_path) :
-	print '\nUsage: %s <number_of_organisms> [-c (conserved) or -s (semiconserved)] <solution.disco>\n' %program_path
+	print('\nUsage: %s <number_of_organisms> [-c (conserved) or -s (semiconserved)] <solution.disco>\n' %program_path)
 
 conserved = True
 
@@ -172,9 +172,9 @@ def handleArgs(args) :
 		return
 	if (args[2] == '-s') :
 		conserved = False
-		print 'Finding semiconserved clusters.'
+		print('Finding semiconserved clusters.')
 	else :
-		print 'Finding conserved clusters.'
+		print('Finding conserved clusters.')
 	return True
 
 def get_all_names(clusters, num_species) :
@@ -184,13 +184,13 @@ def get_all_names(clusters, num_species) :
 	all_names = big_cluster.get_all_names_sorted()
 
 	if len(all_names) != num_species :
-		print 'Oh, no! We didn\'t get a cluster with all the organisms represented!'
+		print('Oh, no! We didn\'t get a cluster with all the organisms represented!')
 	return all_names
 
 # OUTPUT FORMAT
 # Cluster	Species	Gene	GO-terms
 def write_output(clusters, total, out_file) :
-	print 'Writing output.'
+	print('Writing output.')
 	out_file.write('#Cluster\tSpecies\tGene    \tGO-terms\n')
 	counter = 1
 	# Write aligned clusters
@@ -204,7 +204,7 @@ def main(args) :
 	if not handleArgs(args) :
 		return
 	# Read multiparanoid
-	print 'Reading disco input'
+	print('Reading disco input')
 	clusters = read_multiparanoid(int(args[1]), args[3])
 	if len(clusters) == 0 :
 		return
@@ -212,13 +212,13 @@ def main(args) :
 	all_names = get_all_names(clusters, int(args[1]))
 	
 	# Read gff file
-	print "Gathering clusters"
+	print("Gathering clusters")
 	clusters = read_all_gff_files(clusters, all_names)
 
 	total = 0
 	for bin in clusters :
 		total += len(clusters[bin])
-	print 'There are %d clusters in total.' %total 
+	print('There are %d clusters in total.' %total))
 
 	filename = '%s_semiconserved_terms' %args[3]
 	if conserved :
