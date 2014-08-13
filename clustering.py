@@ -221,7 +221,7 @@ def read_fastas(clusters, all_names) :
 def write_cluster(cluster, all_names, counter) :
 	global dir_name
 #	print ('Writing cluster %d' %counter)
-	filename = "tmp_%s_%d_%s_%d" %(dir_name, counter, cluster.get_bin())
+	filename = "%s/tmp_%d_%d" %(dir_name, counter, cluster.get_bin())
 	out_file = open(filename, 'w')
 	cluster.save(out_file, all_names, counter)
 	out_file.close()

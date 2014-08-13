@@ -4,17 +4,17 @@ import sys
 import re
 
 def print_info() :
-	print ""
-	print "This script takes one argument (fasta alignment) and does the following:"
-	print ""
-	print " Output 1 (saved in FILENAME_no_duplicates.fasta)"
-	print "\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data"
-	print "\tThis output file has exactly one sequence per species"
-	print ""
-	print " Output 2 (saved in FILENAME_best_in_genus.fasta"
-	print "\tOut of all species in a genus, it picks the one with the most nucleotide data"
-	print "\tThis output file has exactly one sequence per genus (from the species with the most data)"
-	print ""
+	print("")
+	print("This script takes one argument (fasta alignment) and does the following:")
+	print ("")
+	print (" Output 1 (saved in FILENAME_no_duplicates.fasta)")
+	print ("\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data")
+	print ("\tThis output file has exactly one sequence per species")
+	print ("")
+	print (" Output 2 (saved in FILENAME_best_in_genus.fasta")
+	print ("\tOut of all species in a genus, it picks the one with the most nucleotide data")
+	print ("\tThis output file has exactly one sequence per genus (from the species with the most data)")
+	print ("")
 
 nucs = ['A', 'T', 'C', 'G', 'a', 't', 'c', 'g']
 def calc_nuc_percent(seq, length) :
@@ -30,12 +30,22 @@ def parse_header(line) :
 	line = line[1:]
 	line = line.split('_')
 	if len(line) < 2 :
-		print "(This is probably not an error) Did not find a species for genus in line : %s" %original
+		print("(This is probably not an error) Did not find a species for genus in line : %s" %original)
 		species = ''
 	else :
 		species = line[1]
-		species = re.sub(r'[^a-zA-Z]', '', species)
 	genus = line[0]
+	if genus == 'Out' or genus == 'out' :
+		if len(line) < 3 :
+			print ("(This is probably not an error) Did not find a species for genus in line : %s" %original)
+			species = ''
+		else :
+			species = line[2]
+		genus = line[1]
+	# Remove all nonalpha chars from the species
+	species = re.sub(r'[^a-zA-Z]', '', species)
+	# Remove all nonalpha chars from the genus
+	genus = re.sub(r'[^a-zA-Z]', '', genus)
 	return "%s %s" %(genus, species)
 
 def parse_input(in_file, data) :
@@ -53,6 +63,7 @@ def parse_input(in_file, data) :
 			seq += line
 	return data
 
+# This puts the best sequence at index 0 of the list (data map goes from name to list of sequences)
 def remove_duplicates(data, length) :
 	for name in data :
 		seqs = data[name]
@@ -80,27 +91,31 @@ def contains_duplicates(data) :
 			return True
 	return False
 
+def write_data_at_position(out_file, data, name, index) :
+	out_file.write('>%s\n' %name)
+	seq = data[name][index]
+	seq_out = ''
+	i = 0
+	for char in seq :
+		if i % 60 == 0 :
+			seq_out = seq_out + '\n'
+		seq_out = seq_out + char
+		i += 1
+	if seq_out[0] == '\n' :
+		seq_out = seq_out[1:]
+	seq_out.strip()
+	out_file.write('%s\n' %seq_out)
+
 def write_output(filename, data) :
 	out_file = open(filename, 'w')
 	for name in data :
-		out_file.write('>%s\n' %name)
-		seq = data[name][0]
-		seq_out = ''
-		i = 0
-		for char in seq :
-			if i % 60 == 0 :
-				seq_out = seq_out + '\n'
-			seq_out = seq_out + char
-			i += 1
-		if seq_out[0] == '\n' :
-			seq_out = seq_out[1:]
-		seq_out.strip()
-		out_file.write('%s\n' %seq_out)
+		# Index 0 is the best sequence for this species
+		write_data_at_position(out_file, data, name, 0)
 	out_file.close()
 
 def add_to_genus(best_name, best_seq, by_genus) :
 	if best_name == '' or best_seq == '' :
-		print "If anything appears after the colon, there may be an error: %s %s" %(best_name, best_seq)
+		print ("If anything appears after the colon, there may be an error: %s %s" %(best_name, best_seq))
 	else :
 		by_genus[best_name] = [best_seq]
 	return by_genus
@@ -111,19 +126,16 @@ class Pair(object) :
 		self.name = name
 		self.seq = seq
 
-
+# Produces a map from (genus) to list of (name, sequence) pair objects
 def map_from_genus(data) :
 	from_genus = {}
-	prev = ''
 	for name in data :
 		genus = name.split(' ')[0]
-		seq = data[name][0]
 		if genus == '' :
-			genus = name.split(' ')[1]
-		if genus != prev :
-			if genus not in from_genus :
-				from_genus[genus] = []
-			prev = genus
+			genus = names.split(' ')[1]
+		seq = data[name][0]
+		if genus not in from_genus :
+			from_genus[genus] = []
 		from_genus[genus].append(Pair(name, seq))
 	return from_genus
 
@@ -140,35 +152,35 @@ def collapse_genus(genus_map, length) :
 				best_name = pair.name
 				best_seq = pair.seq
 		if best_seq == '' or best_name == '' and genus != '' :
-			print "Possible error, something is blank for name, seq: %s, %s" %(best_name, best_seq)
-			print "Genus %s has no output." %genus
+			print ("Possible error, something is blank for name, seq: %s, %s" %(best_name, best_seq))
+			print ("Genus %s has no output." %genus)
 		data[best_name] = [best_seq]
 	return data
 
 def main(args) :
 	print_info()
 	if len(args) != 2 :
-		print "INCORRECT ARGUMENTS"
-		print "Usage: %s <alignment_file.fasta>"
+		print ("INCORRECT ARGUMENTS")
+		print ("Usage: %s <alignment_file.fasta>")
 		return 1
 	# data is a map from name (format: "Genus species") to sequence
 	data = {}
 	in_file = open(args[1], 'r')
-	print "Parsing input."
+	print ("Parsing input.")
 	data = parse_input(in_file, data)
 	in_file.close()
-	length = get_seq_length(data[data.keys()[0]][0])
-	print "Selecting best duplicates."
+	length = get_seq_length(list(data.values())[0])
+	print ("Selecting best duplicates.")
 	data = remove_duplicates(data, length)
 	if contains_duplicates(data) :
-		print "ERROR: Duplicates remain!"
-	print "Writing output 1"
+		print ("ERROR: Duplicates remain!")
+	print ("Writing output 1")
 	out_name = "%s_no_duplicates.fasta" %args[1].split('.')[0]
 	write_output(out_name, data)
-	print "Collapsing to one species per genus."
+	print ("Collapsing to one species per genus.")
 	genus_map = map_from_genus(data)
 	data = collapse_genus(genus_map, length)
-	print "Writing output 2"
+	print ("Writing output 2")
 	out_name = "%s_best_in_genus.fasta" %args[1].split('.')[0]
 	write_output(out_name, data)
 
