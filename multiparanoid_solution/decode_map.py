@@ -59,26 +59,26 @@ def read_map(mapfile) :
 		values.append(species_gene(line[1], line[2]))
 	data = dict(zip(keys, values))
 	if len(data) != len(keys) :
-		print "ERROR IN KEY FILE! MULTIPLE DEFINITIONS FOR A KEY!\n"
+		print("ERROR IN KEY FILE! MULTIPLE DEFINITIONS FOR A KEY!\n")
 		return None
 	return data
 
 def main(args) :
 	if (len(args) != 4) :
-		print "Usage: %s <input_filename> <map.disco> <output_filename>" %args[0]
+		print("Usage: %s <input_filename> <map.disco> <output_filename>" %args[0])
 		exit(1)
-	print 'Decoding %s using %s' %(args[1], args[2])
+	print('Decoding %s using %s' %(args[1], args[2]))
 	mapfile = open(args[2], 'r')
 	map = read_map(mapfile)
 	output = open(args[3], 'w')
 	input = open(args[1], 'r')
 	data = sort_input(input)
-	print 'Writing output to %s' %args[3]
+	print('Writing output to %s' %args[3])
 	create_output(data, map, output)
 	mapfile.close()
 	input.close()
 	output.close()
-	print 'Done decoding.'
+	print('Done decoding.')
 
 if __name__ == "__main__" :
 	main(sys.argv)

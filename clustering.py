@@ -267,13 +267,14 @@ def writeOutput(clusters, all_names, total) :
 			write_cluster(cluster, all_names, counter)
 			counter += 1
 
-def determineOutputType(args) :
+def determineOutputType() :
 	global output_type
 	global dir_name
+	global output_type
 	global multiparanoid
-	output_type = args.output_type
+	global uses_dna
 	subscript = 'pep_'
-	if args.uses_dna :
+	if uses_dna :
 		subscript = 'dna_'
 	if (output_type == 'a') :
 		dir_name = "%scomplete_%s" %(subscript, multiparanoid)
@@ -282,7 +283,7 @@ def determineOutputType(args) :
 		dir_name = "%ssemiconserved_%s" %(subscript, multiparanoid)
 		print('Running semiconserved clustering.')
 	elif (output_type == 'c') :
-		dir_name = "%sconserved_%s" %(subscript,multiparanoid)
+		dir_name = "%sconserved_%s" %(subscript, multiparanoid)
 		print('Running conserved clustering.')
 	else :
 		return False
@@ -292,22 +293,24 @@ def handleArgs() :
 	global num_organisms
 	global multiparanoid
 	global uses_dna
+	global output_type
 	parser = argparse.ArgumentParser()
 	parser.add_argument('organism_count', help='The number of organisms. Must be greater than 2.', type=int)
 	parser.add_argument('--uses_dna', help='Set this if you want to cluster based on dna (.fasta) sequences and not amino acid (.pep) sequences.', action='store_true')
 	parser.add_argument('output_type', help='Options are c , s , and a for conserved, semiconserved, and complete (respectively)')
 	parser.add_argument('input', help='Provide a location to solution.disco or a multiparanoid output file.')
 	args = parser.parse_args()
+	multiparanoid = args.input
+	uses_dna = args.uses_dna
+	output_type = args.output_type
 	num_organisms = args.organism_count
-	if not determineOutputType(args) :
+	if not determineOutputType() :
 		return False
 	if num_organisms < 2 :
 		return False
-	multiparanoid = args.input
 	if not os.path.isfile(multiparanoid) :
 		print('Cannot locate multiparanoid file: %s' %multiparanoid)
 		return False
-	uses_dna = args.uses_dna
 	return True
 
 def main() :

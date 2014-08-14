@@ -44,7 +44,7 @@ def make_output_dir() :
 
 def main(args) :
 	if len(args) != 1 :
-		print "Usage: %s" %args[0]
+		print("Usage: %s" %args[0])
 		return 1
 	make_output_dir()
 	dirs = glob.glob('fa_dir*')

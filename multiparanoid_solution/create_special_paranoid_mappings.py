@@ -65,11 +65,11 @@ def main(args) :
 	files = glob.glob("sqltable.*")
 	counter = 1
 	total = len(files)
-	print "Reading files and writing work file (combined.disco)."
+	print("Reading files and writing work file (combined.disco).")
 	workfile = open("combined.disco", 'w')
 	workfile.write("#global_cluster_id\tgene_organism_id\n")
 	for file in files :
-		print "Reading file: %s (%d/%d) %.2f . . . " %(file, counter, total, ((counter*100.0)/total))
+		print("Reading file: %s (%d/%d) %.2f . . . " %(file, counter, total, ((counter*100.0)/total)))
 		infile = open(file, 'r')
 		all_genes = read_file(all_genes, infile, workfile)
 		infile.close()
@@ -77,11 +77,11 @@ def main(args) :
 	workfile.close()
 	mapfile = open("map.disco", 'w')
 	mapfile.write("#gene_organism_id\torganism\tgene\n")
-	print "Writing map to map.disco . . . "
+	print("Writing map to map.disco . . . ")
 	for elem in all_genes :
 		mapfile.write("%d\t%s\t%s\n" %(all_genes[elem], elem.species, elem.gene))
 	mapfile.close()
-	print 'Done writing map.disco'
+	print('Done writing map.disco')
 
 if __name__ == "__main__" :
 	main(sys.argv)

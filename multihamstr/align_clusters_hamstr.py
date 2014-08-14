@@ -10,8 +10,8 @@ from helpers import do_progress_update
 nowhere = open(os.devnull, 'w')
 
 def info() :
-	print 'This program must be run inside a directory of clusters (output from multihamstr.py)'
-	print 'and puts the clusters (conserved or semi) into their own directory, aligned.'
+	print('This program must be run inside a directory of clusters (output from multihamstr.py)')
+	print('and puts the clusters (conserved or semi) into their own directory, aligned.')
 
 def is_semiconserved(file, num_sp) :
 	file_handle = open(file, 'r')
@@ -85,7 +85,7 @@ def complete_clusters(files, num_sp) :
 	for file in files :
 		counter += 1
 		if counter % percent == 0 :
-			print "Progress: (%d/%d) %.2f%%" %(counter, total, (1.0 * counter)/total)
+			print("Progress: (%d/%d) %.2f%%" %(counter, total, (1.0 * counter)/total))
 		if has_all_species(file, num_sp) :
 			new_name = file.split('.')[0] + '.aln'
 			subprocess.call("mafft %s > %s/%s" %(file, dir, new_name), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
@@ -93,7 +93,7 @@ def complete_clusters(files, num_sp) :
 def main(args) :
 	info()
 	if len(args) != 3 or ( args[1] != '-c' and args[1] != '-s' and args[1] != '-a') :
-		print 'Usage: %s [-c (conserved) or -s (semiconserved) or -a (contains all species, allowing paralogs)] <number of organisms>' %args[0]
+		print('Usage: %s [-c (conserved) or -s (semiconserved) or -a (contains all species, allowing paralogs)] <number of organisms>' %args[0])
 		return 1
 	files = glob.glob('*.fa')
 	if (args[1] == '-a') :
