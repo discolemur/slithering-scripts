@@ -1,10 +1,10 @@
 #! /bin/env python
 
 import sys
-sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 import glob
 import os
 import subprocess
+sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 from helpers import do_progress_update
 
 nowhere = open(os.devnull, 'w')
@@ -24,7 +24,7 @@ def is_semiconserved(file, num_sp) :
 				result = False
 			species.add(sp)
 	file_handle.close()
-	if len(species) == 0 :
+	if len(species) < 2 :
 		result = False
 	return result
 
