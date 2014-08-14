@@ -7,7 +7,7 @@
 # *args === optional arguments to pass into the action function
 def do_progress_update(list, action, *args) :
 	total = len(list)
-	checkpoint = total / 10
+	checkpoint = int(total / 10)
 	counter = 0
 	for item in list :
 		if (counter % checkpoint == 0) :

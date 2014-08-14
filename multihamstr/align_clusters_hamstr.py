@@ -24,6 +24,8 @@ def is_semiconserved(file, num_sp) :
 				result = False
 			species.add(sp)
 	file_handle.close()
+	if len(species) == 0 :
+		result = False
 	return result
 
 def is_conserved(file, num_sp) :
