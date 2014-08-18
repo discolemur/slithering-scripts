@@ -87,6 +87,8 @@ def parse_input(filename, data) :
 	header = Header('')
 	for line in in_file :
 		line = line.strip()
+		if line == '' :
+			continue
 		if line[0] == '>' :
 			if header.header != '' :
 				if header not in data :

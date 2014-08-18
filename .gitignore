@@ -2,3 +2,4 @@
 multiparanoid.pl
 my-multi
 *.pyc
+__pycache__
