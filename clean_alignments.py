@@ -8,7 +8,7 @@ def print_info() :
 	print("")
 	print("This script takes one argument (fasta alignment) and does the following:")
 	print ("")
-	print (" Output 1 (saved in FILENAME_no_duplicates.fasta)")
+	print (" Output 1 (saved in FILENAME_best_in_species.fasta)")
 	print ("\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data")
 	print ("\tThis output file has exactly one sequence per species")
 	print ("")
@@ -192,7 +192,7 @@ def run_part_1(args, data, length) :
 	if contains_duplicates(data) :
 		print ("ERROR: Duplicates remain!")
 	print ("Writing output 1")
-	ofname1 = "%s_no_duplicates.fasta" %args[1].split('.')[0]
+	ofname1 = "%s_best_in_species.fasta" %args[1].split('.')[0]
 	write_output(ofname1, data)
 	export_headers_with_numbers(ofname1)
 	return data
