@@ -194,9 +194,22 @@ def reconstruct_map(pairs) :
 		data[pair.name] = pair
 	return data
 
+def lengths_are_equal(pairs) :
+	size = len(pairs[0].seq)
+	for pair in pairs :
+		if len(pair.seq) != size :
+			return False
+	return True
+
 # Assume that at this point, data has no duplicates
 def remove_garbage_columns(data) :
 	pairs = list(data.values())
+	if not lengths_are_equal(pairs) :
+		print('WHOA! I don\'t think this input file is aligned! The sequence lengths are different!')
+		print('Script will still run to completion. Output will not be aligned, and no columns will be removed.')
+		print('Note that the output is affected in the following way:')
+		print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
+		return data
 	size = len(pairs[0].seq)
 	i = 0
 	while i < size :
@@ -244,6 +257,7 @@ def handle_args(args) :
 	parser.add_argument('--debug', help='This makes extra stuff print out for the debugger\'s benefit.', action='store_true')
 	args = parser.parse_args()
 	input = args.input
+	print('Using input: %s' %input)
 	debugging = args.debug
 	printdebug('If you see this message, you are a developer. Congrats. Your terminal will soon be full of meaningful junk.')
 	return input
