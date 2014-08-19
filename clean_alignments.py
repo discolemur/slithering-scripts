@@ -6,6 +6,7 @@ import re
 import argparse
 
 debugging = False
+simple = False
 
 def print_info() :
 	print("")
@@ -181,6 +182,10 @@ def is_garbage(pairs, pos) :
 	return result
 
 def str_minus_index(str, pos) :
+	if pos == 0 :
+		return str[1:]
+	elif pos == len(str) - 1 :
+		return str[:-1]
 	return (str[:pos] + str[(pos+1):])
 
 def remove_column(pairs, pos) :
@@ -202,22 +207,28 @@ def lengths_are_equal(pairs) :
 	return True
 
 # Assume that at this point, data has no duplicates
-def remove_garbage_columns(data) :
-	pairs = list(data.values())
+def remove_garbage_columns(pairs) :
+	global simple
 	if not lengths_are_equal(pairs) :
 		print('WHOA! I don\'t think this input file is aligned! The sequence lengths are different!')
-		print('Script will still run to completion. Output will not be aligned, and no columns will be removed.')
-		print('Note that the output is affected in the following way:')
-		print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
-		return data
+		if not simple :
+			print('Script will still run to completion. Output will not be aligned, and no columns will be removed.')
+			print('Note that the output is affected in the following way:')
+			print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
+			return reconstruct_map(pairs)
+		else :
+			return pairs
 	size = len(pairs[0].seq)
 	i = 0
 	while i < size :
 		if is_garbage(pairs, i) :
 			printdebug('Garbage at %d' %i)
 			pairs = remove_column(pairs, i)
+			i -= 1
 			size -= 1
 		i += 1
+	if simple :
+		return pairs
 	return reconstruct_map(pairs)
 
 def export_headers_with_numbers(filename) :
@@ -225,52 +236,75 @@ def export_headers_with_numbers(filename) :
 	# I tried to protect you with quotes around the filename variable.
 	subprocess.call('egrep \'[0-9]+\' \'%s\' > \'%s_numbered_headers.txt\'' %(filename, filename), shell=True)
 
-def run_part_1(args, data) :
+def run_part_1(input_file, data) :
 	print ("Selecting best duplicates.")
 	length = len((list(data.values())[0][0]).seq)
 	printdebug('Alignment length is: %d' %length)
 	data = remove_duplicates(data, length)
-	data = remove_garbage_columns(data)
+	data = remove_garbage_columns(list(data.values()))
 	print ("Writing output 1")
-	ofname1 = "%s_best_in_species.fasta" %args[1].split('.')[0]
+	ofname1 = "%s_best_in_species.fasta" %input_file.split('.')[0]
 	write_output(ofname1, data)
 	export_headers_with_numbers(ofname1)
 	return data
 
-def run_part_2(args, data) :
+def run_part_2(input_file, data) :
 	print ("Collapsing to one species per genus.")
 	genus_map = map_from_genus(data)
 	length = len((list(genus_map.values())[0][0]).seq)
 	printdebug('Alignment length is: %d' %length)
 	data = remove_duplicates(genus_map, length)
-	data = remove_garbage_columns(data)
+	data = remove_garbage_columns(list(data.values()))
 	print ("Writing output 2")
-	ofname2 = "%s_best_in_genus.fasta" %args[1].split('.')[0]
+	ofname2 = "%s_best_in_genus.fasta" %input_file.split('.')[0]
 	write_output(ofname2, data)
 	export_headers_with_numbers(ofname2)
 	return data
 
+def run_simple(input_file, data) :
+	vals = list(data.values())
+	pairs = []
+	for array in vals :
+		for pair in array :
+			pairs.append(pair)
+	pairs = remove_garbage_columns(pairs)
+	out_name = "%s_cleaned.fasta" %input_file.split('.')[0]
+	of = open(out_name, 'w')
+	for pair in pairs :
+		write_data(of, pair)
+	of.close()
+
 def handle_args(args) :
 	global debugging
+	global simple
 	parser = argparse.ArgumentParser()
 	parser.add_argument('input', help='Provide a location to alignment file.')
 	parser.add_argument('--debug', help='This makes extra stuff print out for the debugger\'s benefit.', action='store_true')
+	parser.add_argument('--simple', help='This gives only one output, chopping the columns of garbage.', action='store_true')
 	args = parser.parse_args()
 	input = args.input
 	print('Using input: %s' %input)
 	debugging = args.debug
 	printdebug('If you see this message, you are a developer. Congrats. Your terminal will soon be full of meaningful junk.')
+	simple = args.simple
 	return input
 
 def main(args) :
-	print_info()
 	input_file = handle_args(args)
+	print_info()
 	# data is a map from header to header-seq pair objects
 	data = parse_input(input_file, {})
-	data = run_part_1(args, data)
-	run_part_2(args, data)
-	print('Done.')
+	global simple
+	if simple :
+		print('Running a simple version of the program.')
+		print('Output gives only one output, chopping the columns of garbage.')
+		run_simple(input_file, data)
+		return 0
+	data = run_part_1(input_file, data)
+	run_part_2(input_file, data)
+	return 0
 
 if __name__ == "__main__" :
 	main(sys.argv)
+	print('Done.')
 
