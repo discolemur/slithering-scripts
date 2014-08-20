@@ -7,6 +7,9 @@
 # *args === optional arguments to pass into the action function
 def do_progress_update(list, action, *args) :
 	total = len(list)
+	if total == 0 :
+		print('Progress cannot be shown for a list with no entries.')
+		return False
 	checkpoint = int(total / 10)
 	if checkpoint == 0 :
 		checkpoint = 1
@@ -16,4 +19,4 @@ def do_progress_update(list, action, *args) :
 			print('Progress: %d/%d (%.2f%%)' %(counter, total, (counter * 100.0 / total)))
 		action(item, *args)
 		counter += 1
-
+	return True

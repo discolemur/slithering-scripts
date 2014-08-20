@@ -42,7 +42,7 @@ def get_aliscore(file) :
 	return i
 
 def read_file(file) :
-	print(file)
+	#print(file)
 	in_file = open(file, 'r')
 	seq1 = ''
 	seq2 = ''
@@ -80,19 +80,18 @@ def handle_file(file, out) :
 	flanking_gaps = seqs.get_flanking_gaps_amt()
 	list_file = file + '_List_random.txt'
 	ali = get_aliscore(list_file)
-	out.write('%s\t%s\t%s\t%d\t%d\n' %(name, ali, length, flanking_gaps, (length - flanking_gaps)))
+	out.write('%s\t%s\t%s\t%d\t%d\t%d\n' %(name, ali, length, flanking_gaps, (length - flanking_gaps), (ali - flanking_gaps)))
 
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
 	files = glob.glob('%s/*.aln' %dir)
 	# This takes care of the files without extensions. We gotta change that script, Anton!
 	if len(files) == 0 :
-		files = []
-		options = glob.glob('*')
+		options = glob.glob('%s/*' %dir)
 		for file in options :
-			if file[:6] == 'mafft_' :
+			if file.split('/')[1][:6] == 'mafft_' and len(file.split('/')[1].split('.')) == 1 :
 				files.append(file)
-	print('Found all alignment files.')
+	print('Found %d alignment files.' %len(files))
 	return files
 
 def main(args) :
@@ -103,7 +102,7 @@ def main(args) :
 	# Map from name to aliscore and length
 	values = {}
 	out = open('result_%s.txt' %args[1].split('/')[0], 'w')
-	out.write('Name\tAliscore\tLength\tFlankingGaps\tLenght-FlankingGaps\n')
+	out.write('Name\tAliscore\tLength\tFlankingGaps\tLenght-FlankingGaps\tAliscore-FlankingGaps\n')
 	do_progress_update(files, handle_file, out)
 	out.close()
 	return 0

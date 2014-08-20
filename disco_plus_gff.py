@@ -218,7 +218,7 @@ def main(args) :
 	total = 0
 	for bin in clusters :
 		total += len(clusters[bin])
-	print('There are %d clusters in total.' %total))
+	print('There are %d clusters in total.' %total)
 
 	filename = '%s_semiconserved_terms' %args[3]
 	if conserved :
