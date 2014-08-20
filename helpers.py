@@ -8,6 +8,8 @@
 def do_progress_update(list, action, *args) :
 	total = len(list)
 	checkpoint = int(total / 10)
+	if checkpoint == 0 :
+		checkpoint = 1
 	counter = 0
 	for item in list :
 		if (counter % checkpoint == 0) :

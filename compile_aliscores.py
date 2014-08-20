@@ -85,6 +85,13 @@ def handle_file(file, out) :
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
 	files = glob.glob('%s/*.aln' %dir)
+	# This takes care of the files without extensions. We gotta change that script, Anton!
+	if len(files) == 0 :
+		files = []
+		options = glob.glob('*')
+		for file in options :
+			if file[:6] == 'mafft_' :
+				files.append(file)
 	print('Found all alignment files.')
 	return files
 
