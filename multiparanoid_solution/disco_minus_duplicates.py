@@ -1,6 +1,7 @@
 #! /bin/env python
 
 import argparse
+from operator import itemgetter
 
 def write_split_line(of_handle, split) :
 	size = len(split)
@@ -14,7 +15,7 @@ def write_output(of_handle, lines) :
 
 # >cds.comp10002_c0_seq1|m.12725 comp10002_c0_seq1|g.12725  ORF comp10002_c0_seq1|g.12725 comp10002_c0_seq1|m.12725 type:5prime_partial len:406 (+) comp10002_c0_seq1:3-1220(+)
 def parse_header(line) :
-        return line[1:].split('.')[1].split('|')[0]
+        return line[1:].split(' ')[-1]
 
 # For each file,
 # Search that file for ids in solution.disco
@@ -25,14 +26,19 @@ def search_files(disco) :
 	for file in files :
 		print('Searching %s' %file)
 		in_handle = open(file, 'r')
+		ids = set()
 		for line in in_handle :
 			if line[0] == '>' :
 				line = line.strip()
 				seq_id = parse_header(line)
+				if seq_id in ids :
+					print('Duplicate id: %s' %seq_id)
+				ids.add(seq_id)
 				if seq_id in disco[file] :
 					lines.append(disco[file][seq_id])
 		in_handle.close()
-	return sorted(lines)
+	# Sort by first column (cluster id)
+	return sorted(lines, key=itemgetter(0))
 
 def handle_input_line(of_handle, line, disco) :
 	if line[0] == '#' :
@@ -51,9 +57,13 @@ def handle_disco(file) :
 	disco_out = '%s_trimmed.disco' %file.split('.')[0]
 	of_handle = open(disco_out, 'w')
 	disco = {}
+	counter = 0
 	for line in if_handle :
 		disco = handle_input_line(of_handle, line, disco)
+		counter += 1
+	print('Read %d lines.' %counter)
 	lines = search_files(disco)
+	print('Will write %d lines.' %len(lines))
 	write_output(of_handle, lines)
 	of_handle.close()
 	if_handle.close()

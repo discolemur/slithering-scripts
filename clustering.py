@@ -58,6 +58,8 @@ class Cluster(object) :
 
 #	No paralogy
 	def is_semiconserved(self) :
+		if len(list(self.genes.keys())) < 2 :
+			return False
 		for key in self.genes :
 			if len(self.genes[key]) != 1:
 				return False

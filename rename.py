@@ -5,9 +5,9 @@ import glob
 
 print('Working...')
 
-files = glob.glob('*.fas')
+files = glob.glob('*gff_extracted.fasta')
 for file in files :
-	newname = file[1:]
+	newname = '%s.fasta' %file.split('.')[0]
 	os.rename(file, newname)
 
 print('Done.')
