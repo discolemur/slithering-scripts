@@ -137,6 +137,7 @@ def add_cluster(clusters, cluster, num_organisms) :
 def read_multiparanoid() :
 	global multiparanoid
 	global num_organisms
+	global uses_dna
 	print ('Reading input %s . . .' %multiparanoid)
 	in_file = open(multiparanoid, 'r')
 	clusters = {}
@@ -157,6 +158,8 @@ def read_multiparanoid() :
 		# remove the file extension
 		organism = line[1].split('.')[0]
 		id = line[2]
+		if uses_dna :
+			id = id.split(':')[0]
 		cluster.add_gene(organism, id)
 	in_file.close()
 	if 0 in clusters :
@@ -189,7 +192,7 @@ def get_gene_id(line) :
 		id = line[0]
 	# Handle complex case for transdecoder headers
 	elif not uses_dna :
-		id = line[-1].split(':')[0]
+		id = line[-1].split(' ')[-1]
 	else :
 		print('Error: unable to parse header.')
 	return id

@@ -13,9 +13,14 @@ def write_output(of_handle, lines) :
 	for line in lines :
 		write_split_line(of_handle, line)
 
+# 		Example header lines:
 # >cds.comp10002_c0_seq1|m.12725 comp10002_c0_seq1|g.12725  ORF comp10002_c0_seq1|g.12725 comp10002_c0_seq1|m.12725 type:5prime_partial len:406 (+) comp10002_c0_seq1:3-1220(+)
+# >comp10002_c0_seq1:3-1220(+)
+# This function should work for both headers, and keep exactly the data shown in the second example.
 def parse_header(line) :
-        return line[1:].split(' ')[-1]
+	if len(line[1:].split(' ')) == 1 :
+		return line[1:]
+	return line[1:].split(' ')[-1]
 
 # For each file,
 # Search that file for ids in solution.disco

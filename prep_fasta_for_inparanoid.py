@@ -1,7 +1,6 @@
 #! /bin/env python
 
-# This script abbreviates the header
-# and it removes dangling '*' from the sequences
+# This script  removes dangling '*' from the sequences
 
 
 import sys
@@ -18,24 +17,13 @@ def main(args) :
         for line in fasta_in :
                 line = line.strip()
                 if line[0] == '>' :
-			if ' ' in line :
-				line = line.split(' ')
-				line = line[0]
-			if '|' in line :
-				line = line.split('|')
-				line = line[0]
-			if '.' in line :
-				line = line.split('.')
-				line = line[1]
-                        fasta_out.write('>%s' %line)
-			if line != '' :
-				fasta_out.write('\n')
+                        fasta_out.write(line)
                 else :
                         if line[-1] == '*' :
                                 line = line[:-1]
                         fasta_out.write(line)
-			if line != '' :
-				fasta_out.write('\n')
+		if line != '' :
+			fasta_out.write('\n')
         fasta_out.close()
         fasta_in.close()
 

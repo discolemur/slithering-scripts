@@ -112,7 +112,7 @@ def read_multiparanoid(num_organisms, multiparanoid) :
 					clusters[bin] = [cluster]
 			cluster = Cluster()
 		# line goes in current cluster
-		cluster.add_gene(line[1].split('.')[0], line[2])
+		cluster.add_gene(line[1].split('.')[0], line[2].split(':')[0])
 	in_file.close()
 	if 0 in clusters :
 		del clusters[0]
