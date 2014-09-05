@@ -17,8 +17,11 @@ def produce_headers(sampleFile) :
 	file = open(sampleFile, 'r')
 	for line in file :
 		if line[0] == '>' :
-			line = line.split(' ')
-			superArray.append(">%s" %line[-1])
+			line = line.strip()
+			line = line[1:]
+			if len(line.split('|')) != 1 :
+				line = line.split('|')[1]
+			superArray.append(">%s\n" %line)
 	return superArray
 
 def build_super_matrix(files) :

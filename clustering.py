@@ -278,17 +278,18 @@ def determineOutputType() :
 	global output_type
 	global multiparanoid
 	global uses_dna
+	multiparanoid_abrv = multiparanoid.split('.')[0]
 	subscript = 'pep_'
 	if uses_dna :
 		subscript = 'dna_'
 	if (output_type == 'a') :
-		dir_name = "%scomplete_%s" %(subscript, multiparanoid)
+		dir_name = "%scomplete_%s" %(subscript, multiparanoid_abrv)
 		print('Running complete clustering (allows paralogs)')
 	elif (output_type == 's') :
-		dir_name = "%ssemiconserved_%s" %(subscript, multiparanoid)
+		dir_name = "%ssemiconserved_%s" %(subscript, multiparanoid_abrv)
 		print('Running semiconserved clustering.')
 	elif (output_type == 'c') :
-		dir_name = "%sconserved_%s" %(subscript, multiparanoid)
+		dir_name = "%sconserved_%s" %(subscript, multiparanoid_abrv)
 		print('Running conserved clustering.')
 	else :
 		return False
