@@ -11,20 +11,20 @@ simple = False
 def print_info() :
 	print("")
 	print("This script takes one argument (fasta alignment) and does the following:")
-	print ("")
-	print (" Output 1 (saved in FILENAME_best_in_species.fasta)")
-	print ("\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data")
-	print ("\tThis output file has exactly one sequence per species")
-	print ("")
-	print (" Output 2 (saved in FILENAME_best_in_genus.fasta")
-	print ("\tOut of all species in a genus, it picks the one with the most nucleotide data")
-	print ("\tThis output file has exactly one sequence per genus (from the species with the most data)")
-	print ("")
-	print (' Output format:')
-	print ('\tOutput is in aligned fasta format. Once organisms have been removed,')
-	print ('\tall resulting empty columns (places where every sequence has -, ?, n, or N)')
-	print ('\tare removed, so the alignments are clean and trimmed.')
-	print ('')
+	print("")
+	print(" Output 1 (saved in FILENAME_best_in_species.fasta)")
+	print("\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data")
+	print("\tThis output file has exactly one sequence per species")
+	print("")
+	print(" Output 2 (saved in FILENAME_best_in_genus.fasta")
+	print("\tOut of all species in a genus, it picks the one with the most nucleotide data")
+	print("\tThis output file has exactly one sequence per genus (from the species with the most data)")
+	print("")
+	print(' Output format:')
+	print('\tOutput is in aligned fasta format. Once organisms have been removed,')
+	print('\tall resulting empty columns (places where every sequence has -, ?, n, or N)')
+	print('\tare removed, so the alignments are clean and trimmed.')
+	print('')
 
 def printdebug(msg) :
 	if debugging :
@@ -69,10 +69,20 @@ class Header(object) :
 		genus = re.sub(r'[^a-zA-Z]', '', genus)
 		return "%s %s" %(genus, species)
 
+	def __str__(self) :
+		return self.header
+
 	def __hash__(self) :
 		return hash(self.parseHeader())
 	def __eq__(self, other) :
-		return (self.parseHeader() == other.parseHeader())
+		if other.__class__ == self.__class__ :
+			return (self.parseHeader() == other.parseHeader())
+		else :
+			return False
+
+	def __lt__(self, other) :
+		return self.header < other.header
+
 	def __ne__(self, other) :
 		return (self.parseHeader() != other.parseHeader())
 
@@ -81,11 +91,21 @@ class Header(object) :
 
 	def getSpecies(self) :
 		name = self.parseHeader().split(' ')
-		sp == ''
+		sp = ''
 		if len(name) > 1 :
 			sp = name[1]
 		return sp
 
+isAligned = True
+# This will see if the data are aligned, then set a global variable
+def checkAlignment(data) :
+	global isAligned
+	length = len((list(data.values())[0][0]).seq)
+	for header in data :
+		for pair in data[header] :
+			if len(pair.seq) != length :
+				isAligned = False
+				return
 
 def parse_input(filename, data) :
 	in_file = open(filename, 'r')
@@ -109,20 +129,26 @@ def parse_input(filename, data) :
 		data[header] = []
 	data[header].append(Pair(header, seq))
 	in_file.close()
+	checkAlignment(data)
 	return data
 
 nucs = ['A', 'T', 'C', 'G', 'a', 't', 'c', 'g']
 def calc_nuc_percent(seq, length) :
+	global isAligned
 	global nucs
 	count = 0
 	for char in seq :
 		if char in nucs :
 			count += 1
-	return (1.0 * count) / length
+	result = 1.0 * count
+	if isAligned :
+		result = count / length
+	return result
 
 # This puts the best sequence at index 0 of the list (argument data map goes from header to list of Pair sequences)
 # It returns a map from Header to Pair
 def remove_duplicates(data, length) :
+	num_pattern = re.compile('[0-9]+')
 	for header in data :
 		seq_pairs = data[header]
 		size = len(seq_pairs)
@@ -130,17 +156,29 @@ def remove_duplicates(data, length) :
 		best_index = -1
 		for i in range(0, size) :
 			percent = calc_nuc_percent(seq_pairs[i].seq, length)
+			printdebug('%s\t%d' %(seq_pairs[i].name.header, percent))
 			if percent > best_percent :
+		#		printdebug('%.2f > %.2f\t%s' %(percent, best_percent, header))
 				best_percent = percent
 				best_index = i
+			elif percent == best_percent :
+				printdebug('%.2f == %.2f\t%s\t%s' %(percent, best_percent, seq_pairs[i].name.header, seq_pairs[best_index].name.header))
+				# Prefer the result with no number in the header
+				if not num_pattern.search(seq_pairs[i].name.header) and num_pattern.search(seq_pairs[best_index].name.header) :
+					best_percent = percent
+					best_index = i
+				# Take the alphabetically lower name otherwise (this is just to make sure we get unique output)
+				elif seq_pairs[i].name.header < seq_pairs[best_index].name.header :
+					best_percent = percent
+					best_index = i
 		best_pair = seq_pairs[best_index]
 		# The map no longer goes to a list, but just to a pair object
 		data[header] = best_pair
 	return data
 
 def write_data(ofile, seq_pair) :
-	# Must access the header of the Header object. Sorry about the bad code, bro.
-	ofile.write('%s\n' %seq_pair.name.header)
+	# name is a Header object, but I overrode the __str__ method, so this works just fine.
+	ofile.write('%s\n' %seq_pair.name)
 	seq_out = ''
 	i = 0
 	for char in seq_pair.seq :
@@ -154,7 +192,7 @@ def write_data(ofile, seq_pair) :
 
 def write_output(filename, data) :
 	ofile = open(filename, 'w')
-	for header in data :
+	for header in sorted(data) :
 		write_data(ofile, data[header])
 	ofile.close()
 
@@ -171,26 +209,27 @@ def map_from_genus(data) :
 		from_genus[genus].append(seq_pair)
 	return from_genus
 
+the_nucs = ['A','T','G','C','a','t','g','c']
 the_dump = ['N','n','-','?']
 def is_garbage(pairs, pos) :
-	global the_dump
+	#global the_dump
+	global the_nucs
 	result = True
 	for pair in pairs :
-		if pair.seq[pos] not in the_dump :
+		#if pair.seq[pos] not in the_dump :
+		if pair.seq[pos] in the_nucs :
 			result = False
 			break
 	return result
 
 def str_minus_index(str, pos) :
-	if pos == 0 :
-		return str[1:]
-	elif pos == len(str) - 1 :
-		return str[:-1]
-	return (str[:pos] + str[(pos+1):])
+	arr = list(str)
+	arr.pop(pos)
+	return ''.join(arr)
 
 def remove_column(pairs, pos) :
 	for pair in pairs :
-		pair.seq = str_minus_index(pair.seq, pos).strip()
+		pair.seq = str_minus_index(pair.seq, pos)
 	return pairs
 
 def reconstruct_map(pairs) :
@@ -207,6 +246,7 @@ def lengths_are_equal(pairs) :
 	return True
 
 # Assume that at this point, data has no duplicates
+# pairs should be an array of Pair objects
 def remove_garbage_columns(pairs) :
 	global simple
 	if not lengths_are_equal(pairs) :
@@ -217,6 +257,7 @@ def remove_garbage_columns(pairs) :
 			print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
 			return reconstruct_map(pairs)
 		else :
+			print('You will get no meaningful output, because simple mode requires an aligned input.')
 			return pairs
 	size = len(pairs[0].seq)
 	i = 0
@@ -225,7 +266,7 @@ def remove_garbage_columns(pairs) :
 			printdebug('Garbage at %d' %i)
 			pairs = remove_column(pairs, i)
 			i -= 1
-			size -= 1
+			size = len(pairs[0].seq)
 		i += 1
 	if simple :
 		return pairs
@@ -236,29 +277,30 @@ def export_headers_with_numbers(filename) :
 	# I tried to protect you with quotes around the filename variable.
 	subprocess.call('egrep \'[0-9]+\' \'%s\' > \'%s_numbered_headers.txt\'' %(filename, filename), shell=True)
 
-def run_part_1(input_file, data) :
-	print ("Selecting best duplicates.")
+def runReduce(data, ofname) :
+	global isAligned
 	length = len((list(data.values())[0][0]).seq)
-	printdebug('Alignment length is: %d' %length)
+	if isAligned :
+		printdebug('Alignment length is: %d' %length)
 	data = remove_duplicates(data, length)
 	data = remove_garbage_columns(list(data.values()))
-	print ("Writing output 1")
+	print ("Writing output")
+	write_output(ofname, data)
+	export_headers_with_numbers(ofname)
+	print('Done writing.')
+	return data
+
+def run_part_1(input_file, data) :
+	print ("\nSelecting best duplicates.")
 	ofname1 = "%s_best_in_species.fasta" %input_file.split('.')[0]
-	write_output(ofname1, data)
-	export_headers_with_numbers(ofname1)
+	data = runReduce(data, ofname1)
 	return data
 
 def run_part_2(input_file, data) :
-	print ("Collapsing to one species per genus.")
-	genus_map = map_from_genus(data)
-	length = len((list(genus_map.values())[0][0]).seq)
-	printdebug('Alignment length is: %d' %length)
-	data = remove_duplicates(genus_map, length)
-	data = remove_garbage_columns(list(data.values()))
-	print ("Writing output 2")
+	print ("\nCollapsing to one species per genus.")
 	ofname2 = "%s_best_in_genus.fasta" %input_file.split('.')[0]
-	write_output(ofname2, data)
-	export_headers_with_numbers(ofname2)
+	genus_map = map_from_genus(data)
+	data = runReduce(genus_map, ofname2)
 	return data
 
 def run_simple(input_file, data) :
