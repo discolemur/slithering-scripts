@@ -115,9 +115,9 @@ def read_file(filename, count) :
 		else :
 			seq += line
 	print(len(homologs))
-	random_seqs = get_random_pairs(homologs)
-	print(len(random_seqs))
-	write_amount(homologs, 'orthodb_homologs', count)
+	randoms = get_random_pairs(homologs)
+	print(len(randoms))
+#	write_amount(homologs, 'orthodb_homologs', count)
 	write_amount(randoms, 'orthodb_randoms', count)
 	ifhandle.close()
 
