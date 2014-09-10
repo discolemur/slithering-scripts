@@ -1,6 +1,7 @@
 #! /bin/env python
 
 import glob
+import os
 import sys
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 from helpers import do_progress_update
@@ -32,7 +33,12 @@ class Pair(object) :
 			i -= 1
 		return counter
 
+	def __str__(self) :
+		return '%s\n%s\n' %(self.seq1, self.seq2)
+
 def get_aliscore(file) :
+	if not os.path.isfile(file) :
+		return None
 	in_file = open(file, 'r')
 	i = 0
 	for line in in_file :
@@ -59,6 +65,8 @@ def read_file(file) :
 			else :
 				seq2 = seq2 + line
 	in_file.close()
+	if seq1 == '' and seq2 == '' :
+		return None
 	return Pair(seq1, seq2)
 
 def get_name(file) :
@@ -72,11 +80,21 @@ def get_name(file) :
 
 def handle_file(file, out, result) :
 	seqs = read_file(file)
+	if seqs is None :
+		return
 	length = seqs.get_length()
 	flanking_gaps = seqs.get_flanking_gaps_amt()
+	if flanking_gaps > length :
+		print('WOAH! Flanking gaps is greater than length.')
+		print(seqs)
 	list_file = file + '_List_random.txt'
 	ali = get_aliscore(list_file)
-	out.write('%d\t%d\t%d\t%d\t%s\n' %(ali, length, (length - flanking_gaps), (ali - flanking_gaps), result))
+	if flanking_gaps > ali :
+		print('WOAH! Flanking gaps is greater than ali.')
+		print(seqs)
+	if ali is None :
+		return
+	out.write('%d\t%d\t%d\t%d\t%s\n' %(ali, length, (ali - flanking_gaps), (length - flanking_gaps), result))
 
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
@@ -90,16 +108,16 @@ def get_aln_files(dir) :
 	print('Found %d alignment files.' %len(files))
 	return files
 
-def main(args) :
+def main() :
 	homolog_files = get_aln_files('orthodb_homologs')
 	randoms_files = get_aln_files('orthodb_randoms')
-	out = open('result_%s.txt' %args[1].split('/')[0], 'w')
-	out.write('Aliscore\tLength\tLenght-FlankingGaps\tAliscore-FlankingGaps\tOut(H/NH)\n')
+	out = open('result_orthodb_table.txt', 'w')
+	out.write('Ali\tLen\tAliInternal\tLenInternal\tOut\n')
 	do_progress_update(homolog_files, handle_file, out, 'H')
 	do_progress_update(randoms_files, handle_file, out, 'NH')
 	out.close()
 	return 0
 
 if __name__ == '__main__' :
-	main(sys.argv)
+	main()
 

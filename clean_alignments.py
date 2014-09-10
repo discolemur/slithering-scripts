@@ -32,10 +32,11 @@ def printdebug(msg) :
 		print(msg)
 
 # Most often, this object actually holds a Header (name) and string (seq).
-class Pair(object) :
+class Gene(object) :
 	def __init__(self, name, seq) :
 		self.name = name
 		self.seq = seq
+		printdebug(seq)
 
 	def remove_number(self) :
 		self.name.remove_number()
@@ -110,18 +111,19 @@ def checkAlignment(data) :
 	global isAligned
 	length = len((list(data.values())[0][0]).seq)
 	for header in data :
-		for pair in data[header] :
-			if len(pair.seq) != length :
+		for gene in data[header] :
+			if len(gene.seq) != length :
 				isAligned = False
 				return False
 	return isAligned
-def put_in_map(pair, key, map) :
+
+def put_in_map(gene, key, map) :
 	if key == '' :
-		printdebug('Blank key for %s' %pair.name)
+		printdebug('Blank key for %s' %gene.name)
 		return
 	if key not in map :
 		map[key] = []
-	map[key].append(pair)
+	map[key].append(gene)
 
 def parse_input(filename) :
 	in_file = open(filename, 'r')
@@ -136,19 +138,18 @@ def parse_input(filename) :
 			continue
 		if line[0] == '>' :
 			if header.header != '' :
-				pair = Pair(header, seq)
-				#data[header].append(Pair(header, seq))
-				put_in_map(pair, header, header_map)
-				put_in_map(pair, header.getGenus(), genus_map)
-				put_in_map(pair, header.getSpecies(), species_map)
+				#data[header].append(Gene(header, seq))
+				put_in_map(Gene(header, seq), header, header_map)
+				put_in_map(Gene(header, seq), header.getGenus(), genus_map)
+				put_in_map(Gene(header, seq), header.getSpecies(), species_map)
 			header = Header(line)
 			seq = ''
 		else :
 			seq += line
 	# Take care of the last sequence in the file
-	put_in_map(pair, header, header_map)
-	put_in_map(pair, header.getGenus(), genus_map)
-	put_in_map(pair, header.getSpecies(), species_map)
+	put_in_map(Gene(header, seq), header, header_map)
+	put_in_map(Gene(header, seq), header.getGenus(), genus_map)
+	put_in_map(Gene(header, seq), header.getSpecies(), species_map)
 	in_file.close()
 	checkAlignment(header_map)
 	return species_map, genus_map, header_map
@@ -166,44 +167,44 @@ def calc_nuc_percent(seq, length) :
 		result = (1.0 * count) / length
 	return result
 
-# This puts the best sequence at index 0 of the list (argument data map goes from header to list of Pair sequences)
-# It returns a map from Header to Pair
+# This puts the best sequence at index 0 of the list (argument data map goes from header to list of Gene)
+# It returns a map from Header to Gene
 def remove_duplicates(data, length) :
 	num_pattern = re.compile('[0-9]+')
 	for header in data :
-		seq_pairs = data[header]
-		size = len(seq_pairs)
+		seq_genes = data[header]
+		size = len(seq_genes)
 		best_percent = 0.0
 		best_index = -1
 		for i in range(0, size) :
-			percent = calc_nuc_percent(seq_pairs[i].seq, length)
-			printdebug('%s\t%.2f' %(seq_pairs[i].name.header, percent))
+			percent = calc_nuc_percent(seq_genes[i].seq, length)
+	#		printdebug('%s\t%.2f' %(seq_genes[i].name.header, percent))
 			if percent > best_percent :
 		#		printdebug('%.2f > %.2f\t%s' %(percent, best_percent, header))
 				best_percent = percent
 				best_index = i
 			elif percent == best_percent :
-				printdebug('%.2f == %.2f\t%s\t%s' %(percent, best_percent, seq_pairs[i].name.header, seq_pairs[best_index].name.header))
+				printdebug('%.2f == %.2f\t%s\t%s' %(percent, best_percent, seq_genes[i].name.header, seq_genes[best_index].name.header))
 				# Prefer the result with no number in the header
-				if not num_pattern.search(seq_pairs[i].name.header) and num_pattern.search(seq_pairs[best_index].name.header) :
+				if not num_pattern.search(seq_genes[i].name.header) and num_pattern.search(seq_genes[best_index].name.header) :
 					best_percent = percent
 					best_index = i
 				# Take the alphabetically lower name otherwise (this is just to make sure we get unique output)
-				elif seq_pairs[i].name.header < seq_pairs[best_index].name.header :
+				elif seq_genes[i].name.header < seq_genes[best_index].name.header :
 					best_percent = percent
 					best_index = i
-		best_pair = seq_pairs[best_index]
-		best_pair.remove_number()
-		# The map no longer goes to a list, but just to a pair object
-		data[header] = best_pair
+		best_gene = seq_genes[best_index]
+		best_gene.remove_number()
+		# The map no longer goes to a list, but just to a gene object
+		data[header] = best_gene
 	return data
 
-def write_data(ofile, seq_pair) :
+def write_data(ofile, seq_gene) :
 	# name is a Header object, but I overrode the __str__ method, so this works just fine.
-	ofile.write('%s\n' %seq_pair.name)
+	ofile.write('%s\n' %seq_gene.name)
 	seq_out = ''
 	i = 0
-	for char in seq_pair.seq :
+	for char in seq_gene.seq :
 		if i % 60 == 0 :
 			seq_out = seq_out + '\n'
 		seq_out = seq_out + char
@@ -220,66 +221,72 @@ def write_output(filename, data) :
 
 the_nucs = ['A','T','G','C','a','t','g','c']
 the_dump = ['N','n','-','?']
-def is_garbage(pairs, pos) :
-	#global the_dump
-	global the_nucs
+def is_garbage(genes, pos) :
+	global the_dump
 	result = True
-	for pair in pairs :
-		#if pair.seq[pos] not in the_dump :
-		if pair.seq[pos] in the_nucs :
+	for gene in genes :
+		if gene.seq[pos] not in the_dump :
 			result = False
 			break
 	return result
 
 def str_minus_index(str, pos) :
+	global the_nucs
+	#printdebug('Before:\t%s' %str)
 	arr = list(str)
-	arr.pop(pos)
+	char = arr.pop(pos)
+	if char in the_nucs :
+		print('ERROR: Huge error! The char %s was removed from a line.' %char)
+	#printdebug('After:\t%s' %(''.join(arr)))
 	return ''.join(arr)
 
-def remove_column(pairs, pos) :
-	for pair in pairs :
-		pair.seq = str_minus_index(pair.seq, pos)
-	return pairs
+def remove_column(genes, pos) :
+	for gene in genes :
+		before = len(gene.seq)
+		gene.seq = str_minus_index(gene.seq, pos)
+		if len(gene.seq) != before - 1 :
+			print('ERROR: Huge error in removing columns! Before: %d After: %d' %(before, len(gene.seq)))
+	return genes
 
-def reconstruct_map(pairs) :
+def reconstruct_map(genes) :
 	data = {}
-	for pair in pairs :
-		data[pair.name] = pair
+	for gene in genes :
+		data[gene.name] = gene
 	return data
 
-def lengths_are_equal(pairs) :
-	size = len(pairs[0].seq)
-	for pair in pairs :
-		if len(pair.seq) != size :
+def lengths_are_equal(genes) :
+	size = len(genes[0].seq)
+	for gene in genes :
+		if len(gene.seq) != size :
 			return False
 	return True
 
 # Assume that at this point, data has no duplicates
-# pairs should be an array of Pair objects
-def remove_garbage_columns(pairs) :
+# genes should be an array of Gene objects
+def remove_garbage_columns(genes) :
 	global simple
-	if not lengths_are_equal(pairs) :
-		print('WHOA! I don\'t think this input file is aligned! The sequence lengths are different!')
+	if not lengths_are_equal(genes) :
+		print('ERROR: I don\'t think this input file is aligned! The sequence lengths are different!')
 		if not simple :
 			print('Script will still run to completion. Output will not be aligned, and no columns will be removed.')
 			print('Note that the output is affected in the following way:')
 			print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
-			return reconstruct_map(pairs)
+			return reconstruct_map(genes)
 		else :
 			print('You will get no meaningful output, because simple mode requires an aligned input.')
-			return pairs
-	size = len(pairs[0].seq)
+			return genes
+	size = len(genes[0].seq)
 	i = 0
 	while i < size :
-		if is_garbage(pairs, i) :
+		if is_garbage(genes, i) :
 			printdebug('Garbage at %d' %i)
-			pairs = remove_column(pairs, i)
+			genes = remove_column(genes, i)
 			i -= 1
-			size = len(pairs[0].seq)
+			size = len(genes[0].seq)
 		i += 1
 	if simple :
-		return pairs
-	return reconstruct_map(pairs)
+		return genes
+	return reconstruct_map(genes)
 
 #def export_headers_with_numbers(filename) :
 	# NOTE: Be careful with this: because shell=True, shell commands will execute.
@@ -301,15 +308,15 @@ def runReduce(data, ofname) :
 
 def run_simple(input_file, data) :
 	vals = list(data.values())
-	pairs = []
+	genes = []
 	for array in vals :
-		for pair in array :
-			pairs.append(pair)
-	pairs = remove_garbage_columns(pairs)
+		for gene in array :
+			genes.append(gene)
+	genes = remove_garbage_columns(genes)
 	out_name = "%s_cleaned.fasta" %input_file.split('.')[0]
 	of = open(out_name, 'w')
-	for pair in pairs :
-		write_data(of, pair)
+	for gene in genes :
+		write_data(of, gene)
 	of.close()
 
 def handle_args(args) :
@@ -330,7 +337,7 @@ def handle_args(args) :
 def main(args) :
 	input_file = handle_args(args)
 	print_info()
-	# data is a map from header to header-seq pair objects
+	# data is a map from header to header-seq gene objects
 	species_map, genus_map, header_map  = parse_input(input_file)
 
 	global simple
