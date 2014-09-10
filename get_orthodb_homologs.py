@@ -36,7 +36,7 @@ def run_aliscore(filename, counter) :
 		fh.write('#!/bin/bash\n')
 		fh.write('#SBATCH --time=50:00:00 --ntasks=1 --nodes=1 --mem-per-cpu=4G -J Ali\n\n')
 		fh.write('perl Aliscore.02.2.pl -i %s\n' %filename)
-	subprocess.call('sbatch aliBatch%d.sh' %(counter))
+	subprocess.call('sbatch aliBatch%d.sh' %(counter), shell=True)
 
 def write_homolog(homolog, counter) :
 	filename = '%d.fa' %(counter)
