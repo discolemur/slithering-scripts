@@ -2,6 +2,7 @@
 
 import glob
 import os
+import copy
 import sys
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 from helpers import do_progress_update
@@ -17,35 +18,41 @@ class Pair(object) :
 			print('The sequences have different lengths. Are you sure they are aligned?')
 		return len(self.seq1)
 
-	def get_flanking_gaps_amt(self) :
+	def get_flanking_gaps_amt(self, ali) :
+		ali_internal = copy.copy(ali)
 		counter = 0
 		for i in range(0, len(self.seq1) ) :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
+				if str(i + 1) in ali_internal :
+					ali_internal.remove(str(i+1))
 				counter += 1
 			elif self.seq1[i] != '-' and self.seq2[i] != '-' :
 				break
 		i = len(self.seq2) - 1
 		while i > 0 :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
+				if str(i + 1) in ali_internal :
+					ali_internal.remove(str(i+1))
 				counter += 1
 			elif self.seq1[i] != '-' and self.seq2[i] != '-' :
 				break
 			i -= 1
-		return counter
+		return counter, ali_internal
 
 	def __str__(self) :
-		return '%s\n%s\n' %(self.seq1, self.seq2)
+		return 'First:\n%s\nSecond:\n%s\n' %(self.seq1, self.seq2)
 
-def get_aliscore(file) :
+def get_aliscore_list(file) :
 	if not os.path.isfile(file) :
 		return None
 	in_file = open(file, 'r')
-	i = 0
+	result = []
 	for line in in_file :
-		line = line.strip()
-		i += len(line.split(' '))
+		line = line.strip().split(' ')
+		if len(line) > 0 :
+			result += line
 	in_file.close()
-	return i
+	return result
 
 def read_file(file) :
 	#print(file)
@@ -83,24 +90,25 @@ def handle_file(file, out, result) :
 	if seqs is None :
 		return
 	length = seqs.get_length()
-	flanking_gaps = seqs.get_flanking_gaps_amt()
-	if flanking_gaps > length :
-		print('WOAH! Flanking gaps is greater than length.')
-		print(seqs)
 	list_file = file + '_List_random.txt'
-	ali = get_aliscore(list_file)
-	if flanking_gaps > ali :
-		print('WOAH! Flanking gaps is greater than ali.')
-		print(seqs)
+	ali = get_aliscore_list(list_file)
 	if ali is None :
 		return
-	out.write('%d\t%d\t%d\t%d\t%s\n' %(ali, length, (ali - flanking_gaps), (length - flanking_gaps), result))
+	flanking_gaps, ali_internal = seqs.get_flanking_gaps_amt(ali)
+	if flanking_gaps > length :
+		print('ERROR: Flanking gaps is greater than length.')
+		print('File: %s\n%s' %(file, seqs))
+	out.write('%d\t%d\t%d\t%d\t%s\n' %(len(ali), length, len(ali_internal), (length - flanking_gaps), result))
 
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
-	files = glob.glob('%s/*.aln' %dir)
+	files = []
+	options = glob.glob('%s/*.aln' %dir)
+	for file in options :
+		if "ALICUT" not in file :
+			files.append(file)
 	# This takes care of the files without extensions. We gotta change that script, Anton!
-	if len(files) == 0 :
+	if len(options) == 0 :
 		options = glob.glob('%s/*' %dir)
 		for file in options :
 			if file.split('/')[1][:6] == 'mafft_' and len(file.split('/')[1].split('.')) == 1 :
