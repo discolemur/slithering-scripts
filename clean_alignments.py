@@ -58,6 +58,10 @@ class Header(object) :
 		if len(line) < 2 :
 			printdebug("(This is probably not an error) Did not find a species for genus in line : %s" %self.header)
 			species = ''
+		elif len(line) > 2 :
+			# When we have a subspecies, there is a third name. Count it as distinct, or not. both are ok.
+			# Right now, they are not considered distinct
+			species = line[1]
 		else :
 			species = line[1]
 		genus = line[0]
@@ -141,7 +145,8 @@ def parse_input(filename) :
 				#data[header].append(Gene(header, seq))
 				put_in_map(Gene(header, seq), header, header_map)
 				put_in_map(Gene(header, seq), header.getGenus(), genus_map)
-				put_in_map(Gene(header, seq), header.getSpecies(), species_map)
+				# The key must include BOTH species and genus, because species is not a unique key. Ex: "Crazy spec" and "Mad spec" can both exist.
+				put_in_map(Gene(header, seq), header.parseHeader(), species_map)
 			header = Header(line)
 			seq = ''
 		else :

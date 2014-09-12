@@ -18,8 +18,21 @@ class Pair(object) :
 			print('The sequences have different lengths. Are you sure they are aligned?')
 		return len(self.seq1)
 
+	# New proceedure to improve trimming
+	# Sliding window begins at ends and removes everything up to the point at which 50% of window size is non-random or non-hyphen
+	def trim_by_window(self, ali) :
+		win_len = 30
+		for i in range(0, len(self.seq1) - win_len) :
+			# from left
+			self.seq1[i]
+		for i in range(0, len(self.seq1) - win_len) :
+			# from right
+			self.seq1[-i]
+		return ali
+
 	def get_flanking_gaps_amt(self, ali) :
 		ali_internal = copy.copy(ali)
+		ali_internal = trim_by_window(ali_internal)
 		counter = 0
 		for i in range(0, len(self.seq1) ) :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
@@ -86,6 +99,7 @@ def get_name(file) :
 	return file.split('.')[0]
 
 def handle_file(file, out, result) :
+	id = file.split('/')[1].split('.')[0] + result
 	seqs = read_file(file)
 	if seqs is None :
 		return
@@ -98,7 +112,7 @@ def handle_file(file, out, result) :
 	if flanking_gaps > length :
 		print('ERROR: Flanking gaps is greater than length.')
 		print('File: %s\n%s' %(file, seqs))
-	out.write('%d\t%d\t%d\t%d\t%s\n' %(len(ali), length, len(ali_internal), (length - flanking_gaps), result))
+	out.write('%s\t%d\t%d\t%d\t%d\t%s\n' %(id, len(ali), length, len(ali_internal), (length - flanking_gaps), result))
 
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
@@ -120,7 +134,7 @@ def main() :
 	homolog_files = get_aln_files('orthodb_homologs')
 	randoms_files = get_aln_files('orthodb_randoms')
 	out = open('result_orthodb_table.txt', 'w')
-	out.write('Ali\tLen\tAliInternal\tLenInternal\tOut\n')
+	out.write('ID\tAli\tLen\tAliInternal\tLenInternal\tOut\n')
 	do_progress_update(homolog_files, handle_file, out, 'H')
 	do_progress_update(randoms_files, handle_file, out, 'NH')
 	out.close()

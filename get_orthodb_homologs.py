@@ -24,6 +24,23 @@ class Homolog(object) :
 		self.best = best_gene
 		self.second = homolog_gene
 
+class Cluster(object) :
+	def __init__(self) :
+		self.genes = []
+
+	def add(self, gene) :
+		self.genes.append(gene)
+
+	def get_homologs(self) :
+		homologs = []
+		for i in range(0, len(self.genes)) :
+			for j in range(i + 1, len(self.genes)) :
+				homologs.append(Homolog(self.genes[i], self.genes[j]))
+		return homologs
+
+	def get_random_gene(self) :
+		return random.choice(self.genes)
+
 def copy_ali_scripts() :
 	if not os.path.isfile('Aliscore.02.2.pl') :
 		shutil.copyfile('/fslgroup/fslg_BybeeLab/scripts/nick/aliscore/Aliscore.02.2.pl', 'Aliscore.02.2.pl')
@@ -50,74 +67,83 @@ def write_homolog(homolog, counter) :
 	run_aliscore(new_name, counter)
 
 def write_amount(arr, dir, count) :
-	if len(arr) < count :
-		print('Did not find enough sequences.')
+	if len(arr) != count :
+		print('Did not find enough sequences. Found: %d Required: %d' %(len(arr), count))
 		return
-	keepers = random.sample(arr, count)
 	if not os.path.exists(dir) :
 		os.mkdir(dir)
 	os.chdir(dir)
-	for i in range(0, count) :
-		write_homolog(keepers[i], i + 1)
+	for i in range(0, len(arr)) :
+		write_homolog(arr[i], i + 1)
 	os.chdir('../')
 
-def give(arr, prev_gene, sp, seq) :
-	if sp != '' and seq != '' and prev_gene.seq != '' and prev_gene.sp != '' and seq != 'Sequence_not_publically_available' and prev_gene.seq != 'Sequence_not_publically_available' :
-		arr.append(Homolog(prev_gene, Gene(sp, seq)))
-	return arr
+def give(clusters, cl, sp, seq) :
+	if sp != '' and seq != '' and seq != 'Sequence_not_publically_available' :
+		if cl not in clusters :
+			clusters[cl] = Cluster()
+		clusters[cl].add(Gene(sp, seq))
+	return clusters
 
-def get_random_pairs(homologs) :
+def get_random_pairs(clusters, count) :
 	randoms = []
-	for i in range(0, len(homologs)) :
-		first = random.choice(homologs)
-		other = random.choice(homologs)
-		a = random.choice([first.best, first.second])
-		b = random.choice([other.best, other.second])
-		randoms.append(Homolog(a, b))
+	keys = list(clusters.keys())
+	for i in range(0, count) :
+		# first and second are clusters
+		try :
+			first = clusters[random.choice(keys)]
+			second = clusters[random.choice(keys)]
+			a = first.get_random_gene()
+			b = second.get_random_gene()
+			randoms.append(Homolog(a, b))
+		except :
+			print('Exception raised in random choice.')
 	return randoms
+
+def get_homolog_pairs(clusters, count) :
+	homologs = []
+	remainder = list(clusters.values())
+	while len(homologs) < count and len(remainder) > 0 :
+		num = random.randint(0, len(remainder)-1)
+		options = remainder.pop(num).get_homologs()
+		i = 0
+		while len(homologs) < count and i < len(options) :
+			homologs.append(options[i])
+	return homologs
 
 # Example header:
 # >FBgn0152532 FBpp0179035 B4H052 GL14928 IPR005821 EOG700MNR DPERS
 def read_file(filename, count) :
 	ifhandle = open(filename, 'r')
-	homologs = []
+	clusters = {}
 	prev_cl = ''
-	prev_gene = Gene('','')
 	sp = ''
 	seq = ''
 	cl = ''
-	geto = False
-	getp = False
+	geth = False
 	for line in ifhandle :
 		line = line.strip()
 		if line[0] == '>' :
-			if geto :
-				homologs = give(homologs, prev_gene, sp, seq)
+			if geth :
+				clusters = give(clusters, cl, sp, seq)
 				geto = False
 				prev_cl = ''
-			elif getp :
-				homologs = give(homologs, prev_gene, sp, seq)
-				getp = False
-				prev_cl = ''
-			prev_gene = Gene(sp, seq)
 			line = line.split(' ')
 			sp = line[-1]
 			cl = line[-2]
 			seq = ''
 			if cl == prev_cl :
-				if sp == prev_gene.sp :
-					# handle paralo
-					getp = True
-				else :
-					# handle ortholog
-					geto = True
+				# handle homolog
+				geth = True
 			prev_cl = cl
 		else :
 			seq += line
-	print(len(homologs))
-	randoms = get_random_pairs(homologs)
-	print(len(randoms))
-#	write_amount(homologs, 'orthodb_homologs', count)
+	print("Getting %d homolog pairs" %count)
+	homologs = get_homolog_pairs(clusters, count)
+	print("Got %d homolog pairs" %len(homologs))
+	print("Getting %d random pairs" %count)
+	randoms = get_random_pairs(clusters, count)
+	print("Got %d random pairs" %len(randoms))
+	write_amount(homologs, 'orthodb_homologs', count)
 	write_amount(randoms, 'orthodb_randoms', count)
 	ifhandle.close()
 
@@ -132,7 +158,7 @@ def main(args) :
 		return 1
 	filename = args[1]
 	print('Reading %s'%filename)
-	count = 15000
+	count = 1500000
 	read_file(filename, count)
 	print('Done.')
 
