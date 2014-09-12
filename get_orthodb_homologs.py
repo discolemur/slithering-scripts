@@ -3,6 +3,7 @@
 import argparse
 import os
 import subprocess
+import glob
 import random
 import sys
 import shutil
@@ -73,6 +74,8 @@ def write_amount(arr, dir, count) :
 	if not os.path.exists(dir) :
 		os.mkdir(dir)
 	os.chdir(dir)
+	existing = glob.glob("*List*.txt")
+	i += len(existing)
 	for i in range(0, len(arr)) :
 		write_homolog(arr[i], i + 1)
 	os.chdir('../')
