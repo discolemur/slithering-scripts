@@ -74,9 +74,8 @@ def write_amount(arr, dir, count) :
 	if not os.path.exists(dir) :
 		os.mkdir(dir)
 	os.chdir(dir)
-	existing = glob.glob("*List*.txt")
-	i += len(existing)
-	for i in range(0, len(arr)) :
+	num_exists = len(glob.glob("*List*.txt"))
+	for i in range(0, len(arr) - num_exists) :
 		write_homolog(arr[i], i + 1)
 	os.chdir('../')
 
