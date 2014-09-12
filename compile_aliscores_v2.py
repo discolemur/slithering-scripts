@@ -24,15 +24,52 @@ class Pair(object) :
 		win_len = 30
 		for i in range(0, len(self.seq1) - win_len) :
 			# from left
-			self.seq1[i]
-		for i in range(0, len(self.seq1) - win_len) :
+			#window1 = self.seq1[i:i+win_len]
+			#window2 = self.seq2[i:i+win_len]
+			alicounter = 0
+			hyphencounter = 0
+			for num in range(i, i+win_len) :
+				if self.seq1[num] == '-' or self.seq2[num] == '-' :
+					hyphencounter == 1
+				if str(num) in ali :
+					alicounter += 1
+			if alicounter < win_len / 2 or hyphencounter < win_len / 2 :
+				# trim out
+				trim_len = len(self.seq1[:i])
+				while int(ali[0]) < trim_len :
+					ali.pop(0)
+				self.seq1 = self.seq1[i:]
+				self.seq2 = self.seq2[i:]
+				break
+		i = len(self.seq1) - 1
+		while i > 0 :
 			# from right
-			self.seq1[-i]
+			#window1 = self.seq1[i-win_len:i]
+			#window2 = self.seq2[i-win_len:i]
+			alicounter = 0
+			hyphencounter = 0
+			for num in range(i-win_len, i) :
+				if self.seq1[num] == '-' or self.seq2[num] == '-' :
+					hyphencounter == 1
+				if str(num) in ali :
+					alicounter += 1
+			if alicounter < win_len / 2 or hyphencounter < win_len / 2 :
+				# trim out
+				trim_len = len(self.seq1[i:])
+				self.seq1 = self.seq1[:i]
+				self.seq2 = self.seq2[:i]
+				while int(ali[-1]) > len(self.seq1) :
+					ali.pop(-1)
+				break
+			i -= 1
 		return ali
 
 	def get_flanking_gaps_amt(self, ali) :
 		ali_internal = copy.copy(ali)
-		ali_internal = trim_by_window(ali_internal)
+		if len(ali) != 0 :
+			ali_internal = self.trim_by_window(ali_internal)
+			if len(ali_internal) != len(ali) :
+				print("Window trimmed!")
 		counter = 0
 		for i in range(0, len(self.seq1) ) :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
@@ -62,8 +99,9 @@ def get_aliscore_list(file) :
 	result = []
 	for line in in_file :
 		line = line.strip().split(' ')
-		if len(line) > 0 :
-			result += line
+		for item in line :
+			if item != '' :
+				result.append(item)
 	in_file.close()
 	return result
 
@@ -112,7 +150,8 @@ def handle_file(file, out, result) :
 	if flanking_gaps > length :
 		print('ERROR: Flanking gaps is greater than length.')
 		print('File: %s\n%s' %(file, seqs))
-	out.write('%s\t%d\t%d\t%d\t%d\t%s\n' %(id, len(ali), length, len(ali_internal), (length - flanking_gaps), result))
+	length_post_trim = seqs.get_length()
+	out.write('%s\t%d\t%d\t%d\t%d\t%s\n' %(id, len(ali), length, len(ali_internal), (length_post_trim - flanking_gaps), result))
 
 def get_aln_files(dir) :
 	print('Looking for alignment files...')
