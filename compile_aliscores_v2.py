@@ -24,19 +24,20 @@ class Pair(object) :
 		win_len = 30
 		for i in range(0, len(self.seq1) - win_len) :
 			# from left
-			#window1 = self.seq1[i:i+win_len]
-			#window2 = self.seq2[i:i+win_len]
-			alicounter = 0
-			hyphencounter = 0
-			for num in range(i, i+win_len) :
-				if self.seq1[num] == '-' or self.seq2[num] == '-' :
-					hyphencounter == 1
-				if str(num) in ali :
-					alicounter += 1
+			window1 = self.seq1[i:i+win_len]
+			window2 = self.seq2[i:i+win_len]
+			alicounter = win_len
+			hyphencounter = window1.count('-') + window2.count('-')
+			if (hyphencounter < win_len / 2) :
+				alicounter = 0
+				for num in range(i, i+win_len) :
+					alicounter += ali.count(num)
 			if alicounter < win_len / 2 or hyphencounter < win_len / 2 :
 				# trim out
+		#		print("Trimming where i = %d." %i)
+		#		print("Alicounter: %d, Hyphencounter: %d" %(alicounter, hyphencounter))
 				trim_len = len(self.seq1[:i])
-				while int(ali[0]) < trim_len :
+				while ali[0] < trim_len :
 					ali.pop(0)
 				self.seq1 = self.seq1[i:]
 				self.seq2 = self.seq2[i:]
@@ -44,22 +45,27 @@ class Pair(object) :
 		i = len(self.seq1) - 1
 		while i > 0 :
 			# from right
-			#window1 = self.seq1[i-win_len:i]
-			#window2 = self.seq2[i-win_len:i]
+			window1 = self.seq1[i-win_len:i]
+			window2 = self.seq2[i-win_len:i]
 			alicounter = 0
-			hyphencounter = 0
-			for num in range(i-win_len, i) :
-				if self.seq1[num] == '-' or self.seq2[num] == '-' :
-					hyphencounter == 1
-				if str(num) in ali :
-					alicounter += 1
+			alicounter = win_len
+			hyphencounter = window1.count('-') + window2.count('-')
+			if (hyphencounter < win_len / 2) :
+				alicounter = 0
+				for num in range(i-win_len, i) :
+					alicounter += ali.count(num)
 			if alicounter < win_len / 2 or hyphencounter < win_len / 2 :
 				# trim out
+		#		print("Trimming where i = %d." %i)
+		#		print("Alicounter: %d, Hyphencounter: %d" %(alicounter, hyphencounter))
 				trim_len = len(self.seq1[i:])
 				self.seq1 = self.seq1[:i]
 				self.seq2 = self.seq2[:i]
-				while int(ali[-1]) > len(self.seq1) :
-					ali.pop(-1)
+				if len(ali) != 0 :
+					while ali[-1] > len(self.seq1) :
+						ali.pop(-1)
+						if len(ali) == 0 :
+							break
 				break
 			i -= 1
 		return ali
@@ -68,21 +74,19 @@ class Pair(object) :
 		ali_internal = copy.copy(ali)
 		if len(ali) != 0 :
 			ali_internal = self.trim_by_window(ali_internal)
-			if len(ali_internal) != len(ali) :
-				print("Window trimmed!")
 		counter = 0
 		for i in range(0, len(self.seq1) ) :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
-				if str(i + 1) in ali_internal :
-					ali_internal.remove(str(i+1))
+				if i + 1 in ali_internal :
+					ali_internal.remove(i+1)
 				counter += 1
 			elif self.seq1[i] != '-' and self.seq2[i] != '-' :
 				break
 		i = len(self.seq2) - 1
 		while i > 0 :
 			if self.seq1[i] == '-' or self.seq2[i] == '-' :
-				if str(i + 1) in ali_internal :
-					ali_internal.remove(str(i+1))
+				if i + 1 in ali_internal :
+					ali_internal.remove(i+1)
 				counter += 1
 			elif self.seq1[i] != '-' and self.seq2[i] != '-' :
 				break
@@ -101,7 +105,7 @@ def get_aliscore_list(file) :
 		line = line.strip().split(' ')
 		for item in line :
 			if item != '' :
-				result.append(item)
+				result.append(int(item))
 	in_file.close()
 	return result
 
@@ -114,6 +118,8 @@ def read_file(file) :
 	using_first = False
 	for line in in_file :
 		line = line.strip()
+		if line == '' :
+			continue
 		if line[0] == '>' :
 			# Set from false to true the first time, true to false the second time
 			using_first = not using_first
@@ -138,6 +144,7 @@ def get_name(file) :
 
 def handle_file(file, out, result) :
 	id = file.split('/')[1].split('.')[0] + result
+	print(id)
 	seqs = read_file(file)
 	if seqs is None :
 		return
@@ -146,7 +153,12 @@ def handle_file(file, out, result) :
 	ali = get_aliscore_list(list_file)
 	if ali is None :
 		return
-	flanking_gaps, ali_internal = seqs.get_flanking_gaps_amt(ali)
+	flanking_gaps = 0
+	ali_internal = []
+	try :
+		flanking_gaps, ali_internal = seqs.get_flanking_gaps_amt(ali)
+	except :
+		print('Bogus exception for %s' %id)
 	if flanking_gaps > length :
 		print('ERROR: Flanking gaps is greater than length.')
 		print('File: %s\n%s' %(file, seqs))
@@ -158,7 +170,7 @@ def get_aln_files(dir) :
 	files = []
 	options = glob.glob('%s/*.aln' %dir)
 	for file in options :
-		if "ALICUT" not in file :
+		if "ALICUT" not in file and "Batch" not in file :
 			files.append(file)
 	# This takes care of the files without extensions. We gotta change that script, Anton!
 	if len(options) == 0 :

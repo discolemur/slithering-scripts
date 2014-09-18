@@ -5,6 +5,7 @@ import os
 import subprocess
 import glob
 import random
+from numpy.random import poisson
 import sys
 import shutil
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
@@ -21,7 +22,8 @@ class Gene(object) :
 		self.seq = seq
 	def __lt__(self, other) :
 		return self.seq < other.seq
-
+	def to_string(self) :
+		return '>%s\n%s\n' %(self.sp, self.seq)
 
 class Homolog(object) :
 	def __init__(self, best_gene, homolog_gene) :
@@ -43,7 +45,7 @@ class Cluster(object) :
 		self.genes.append(gene)
 
 	def get_homologs(self) :
-		homologs = []
+		homolgs = []
 		for i in range(0, len(self.genes)) :
 			for j in range(i + 1, len(self.genes)) :
 				homologs.append(Homolog(self.genes[i], self.genes[j]))
@@ -51,6 +53,9 @@ class Cluster(object) :
 
 	def get_random_gene(self) :
 		return random.choice(self.genes)
+
+	def size(self) :
+		return len(self.genes)
 
 def copy_ali_scripts() :
 	if not os.path.isfile('Aliscore.02.2.pl') :
@@ -67,27 +72,24 @@ def run_aliscore(filename, counter) :
 	#subprocess.call('sbatch aliBatch%d.sh' %(counter), shell=True)
 	print('Ready to submit %d' %counter)
 
-def write_homolog(homolog, counter) :
+def write_cluster(cluster, counter) :
 	filename = '%d.fa' %(counter)
 	of_handle = open(filename, 'w')
-	of_handle.write('>%s1\n%s\n' %(homolog.best.sp, homolog.best.seq))
-	of_handle.write('>%s2\n%s\n' %(homolog.second.sp, homolog.second.seq))
+	for gene in cluster.genes :
+		of_handle.write(gene.to_string())
 	of_handle.close()
 	new_name = filename[:-3] + '.aln'
 	subprocess.call("mafft %s > %s" %(filename, new_name), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
 	run_aliscore(new_name, counter)
 
-def write_amount(arr, dir, count) :
-	if len(arr) != count :
-		print('Did not find enough sequences. Found: %d Required: %d' %(len(arr), count))
-#		return
+def write_all(arr, dir) :
 	if not os.path.exists(dir) :
 		os.mkdir(dir)
 	os.chdir(dir)
 	num_exists = len(glob.glob("*.aln"))
 	for i in range(num_exists, len(arr)) :
-		write_homolog(arr[i], i + 1)
+		write_cluster(arr[i], i + 1)
 	os.chdir('../')
 
 def give(clusters, cl, sp, seq) :
@@ -97,34 +99,28 @@ def give(clusters, cl, sp, seq) :
 		clusters[cl].add(Gene(sp, seq))
 	return clusters
 
-def get_random_pairs(clusters, count) :
-	randoms = set()
-	keys = list(clusters.keys())
-	while (len(randoms) != count) :
-		# first and second are clusters
-		try :
-			first = clusters[random.choice(keys)]
-			second = clusters[random.choice(keys)]
-			a = first.get_random_gene()
-			b = second.get_random_gene()
-			randoms.add(Homolog(a, b))
-		except :
-			print('Exception raised in random choice.')
+def get_mean_len(homologs) :
+	total = 0.0
+	for cl in homologs:
+		total += cl.size()
+	return total / len(homologs)
+
+def get_random_clusters(homologs) :
+	count = len(homologs)
+	mean = get_mean_len(homologs)
+	lengths = poisson(mean, count)
+	randoms = []
+	for i in range(0, count) :
+		cl = Cluster()
+		for j in range(0, lengths[i]) :
+			randc = random.choice(homologs)
+			randg = randc.get_random_gene()
+			cl.add(randg)
+		randoms.append(cl)
 	return randoms
 
-def get_homolog_pairs(clusters, count) :
-	homologs = set()
-	remainder = list(clusters.values())
-	while len(homologs) < count and len(remainder) > 0 :
-		num = random.randint(0, len(remainder)-1)
-		options = remainder.pop(num).get_homologs()
-		i = 0
-		while len(homologs) < count and i < len(options) :
-			homologs.add(options[i])
-			i += 1
-	if len(homologs) < count :
-		print('We didn\'t get enough homologs :\'(')
-	return homologs
+def get_homolog_clusters(clusters, count) :
+	return list(clusters.values())
 
 # Example header:
 # >FBgn0152532 FBpp0179035 B4H052 GL14928 IPR005821 EOG700MNR DPERS
@@ -153,14 +149,14 @@ def read_file(filename, count) :
 			prev_cl = cl
 		else :
 			seq += line
-	print("Getting %d homolog pairs" %count)
-	homologs = get_homolog_pairs(clusters, count)
-	print("Got %d homolog pairs" %len(homologs))
-#	print("Getting %d random pairs" %count)
-#	randoms = get_random_pairs(clusters, count)
-#	print("Got %d random pairs" %len(randoms))
-	write_amount(list(homologs), 'orthodb_homologs', count)
-#	write_amount(list(randoms), 'orthodb_randoms', count)
+	print("Getting %d homolog clusters" %count)
+	homologs = get_homolog_clusters(clusters, count)
+	print("Got %d homolog clusters" %len(homologs))
+	print("Getting %d random clusters" %len(homologs))
+	randoms = get_random_clusters(homologs)
+	print("Got %d random clusters" %len(randoms))
+	write_all(list(homologs), 'orthodb_homolog_clusters')
+	write_all(list(randoms), 'orthodb_random_clusters')
 	ifhandle.close()
 
 def info() :
@@ -174,7 +170,7 @@ def main(args) :
 		return 1
 	filename = args[1]
 	print('Reading %s'%filename)
-	count = 1500000
+	count = 15000
 	read_file(filename, count)
 	print('Done.')
 
