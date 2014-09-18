@@ -75,10 +75,13 @@ class Cluster(object) :
 	def is_valid(self, num_organisms) :
 		if output_type == 'c' :
 			return self.is_conserved()
-		elif output_type == 'a' :
+		elif output_type == 'm' :
 			return self.is_complete()
-		else :
+		elif output_type == 's' :
 			return self.is_semiconserved()
+		elif output_type == 'a' :
+			return True
+		return False
 		
 	def get_bin(self) :
 		return len(self.genes)
@@ -279,18 +282,21 @@ def determineOutputType() :
 	global multiparanoid
 	global uses_dna
 	multiparanoid_abrv = multiparanoid.split('.')[0]
-	subscript = 'pep_'
+	subscript = 'pep'
 	if uses_dna :
-		subscript = 'dna_'
-	if (output_type == 'a') :
-		dir_name = "%scomplete_%s" %(subscript, multiparanoid_abrv)
+		subscript = 'dna'
+	if (output_type == 'm') :
+		dir_name = "%s_complete_%s" %(subscript, multiparanoid_abrv)
 		print('Running complete clustering (allows paralogs)')
 	elif (output_type == 's') :
-		dir_name = "%ssemiconserved_%s" %(subscript, multiparanoid_abrv)
+		dir_name = "%s_semiconserved_%s" %(subscript, multiparanoid_abrv)
 		print('Running semiconserved clustering.')
 	elif (output_type == 'c') :
-		dir_name = "%sconserved_%s" %(subscript, multiparanoid_abrv)
+		dir_name = "%s_conserved_%s" %(subscript, multiparanoid_abrv)
 		print('Running conserved clustering.')
+	elif (output_type == 'a') :
+		dir_name = "%s_all_%s" %(subscript, multiparanoid_abrv)
+		print('Oh, boy! You want ALL the clusters!')
 	else :
 		return False
 	return True
@@ -303,7 +309,7 @@ def handleArgs() :
 	parser = argparse.ArgumentParser()
 	parser.add_argument('organism_count', help='The number of organisms. Must be greater than 2.', type=int)
 	parser.add_argument('--uses_dna', help='Set this if you want to cluster based on dna (.fasta) sequences and not amino acid (.pep) sequences.', action='store_true')
-	parser.add_argument('output_type', help='Options are c , s , and a for conserved, semiconserved, and complete (respectively)')
+	parser.add_argument('output_type', help='Options are c , s , m, and a for conserved, semiconserved, complete, all clusters (regardless of any abnormalitites) (respectively)')
 	parser.add_argument('input', help='Provide a location to solution.disco or a multiparanoid output file.')
 	args = parser.parse_args()
 	multiparanoid = args.input
