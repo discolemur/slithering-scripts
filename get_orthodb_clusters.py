@@ -39,10 +39,15 @@ class Homolog(object) :
 
 class Cluster(object) :
 	def __init__(self) :
-		self.genes = []
+		self.genes = {}
 
 	def add(self, gene) :
-		self.genes.append(gene)
+		# Each additional paralog
+		# Will get an extra _ char
+		sp = gene.sp
+		if sp not in self.genes :
+			self.genes[sp] = []
+		self.genes[sp].append(gene)
 
 	def get_homologs(self) :
 		homolgs = []
@@ -52,10 +57,21 @@ class Cluster(object) :
 		return homologs
 
 	def get_random_gene(self) :
-		return random.choice(self.genes)
+		key = random.choice(list(self.genes.keys()))
+		return random.choice(self.genes[key])
 
 	def size(self) :
-		return len(self.genes)
+		size = 0
+		for key in self.genes :
+			size += len(self.genes[key])
+		return size
+
+	def write(self, of_handle) :
+		for key in self.genes :
+			for i in range(0, len(self.genes[key])) :
+				gene = self.genes[key][i]
+				gene.sp = gene.sp + str(i)
+				of_handle.write(gene.to_string())
 
 def copy_ali_scripts() :
 	if not os.path.isfile('Aliscore.02.2.pl') :
@@ -75,8 +91,7 @@ def run_aliscore(filename, counter) :
 def write_cluster(cluster, counter) :
 	filename = '%d.fa' %(counter)
 	of_handle = open(filename, 'w')
-	for gene in cluster.genes :
-		of_handle.write(gene.to_string())
+	cluster.write(of_handle)
 	of_handle.close()
 	new_name = filename[:-3] + '.aln'
 	subprocess.call("mafft %s > %s" %(filename, new_name), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
