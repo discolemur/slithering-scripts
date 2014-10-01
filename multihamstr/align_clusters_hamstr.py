@@ -41,6 +41,8 @@ def is_conserved(file, num_sp) :
 	file_handle.close()
 	if len(species) != num_sp :
 		result = False
+	else :
+		print('Check %s' %file)
 	return result
 
 def has_all_species(file, num_sp) :

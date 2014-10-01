@@ -83,9 +83,9 @@ def run_aliscore(filename, counter) :
 	copy_ali_scripts()
 	with open('aliBatch%d.sh' %(counter),'w') as fh :
 		fh.write('#!/bin/bash\n')
-		fh.write('#SBATCH --time=00:30 --ntasks=1 --nodes=1 --mem-per-cpu=500M -J Ali\n\n')
+		fh.write('#SBATCH --time=02:00 --ntasks=1 --nodes=1 --mem-per-cpu=500M -J Ali\n\n')
 		fh.write('perl Aliscore.02.2.pl -i %s\n' %filename)
-	#subprocess.call('sbatch aliBatch%d.sh' %(counter), shell=True)
+	subprocess.call('sbatch aliBatch%d.sh' %(counter), shell=True)
 	print('Ready to submit %d' %counter)
 
 def write_cluster(cluster, counter) :

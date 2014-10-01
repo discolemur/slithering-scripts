@@ -9,22 +9,29 @@ debugging = False
 simple = False
 
 def print_info() :
-	print("")
-	print("This script takes one argument (fasta alignment) and does the following:")
+	print('')
+	print('\tWelcome to the magic, systematic, problematic, programmatic cleaning script.')
+	print('')
+	print('Input must be in fasta format.')
 	print("")
 	print(" Output 1 (saved in FILENAME_best_in_species.fasta)")
 	print("\tIf any duplicates exist for a species, it picks the one with the most nucleotide [ATGCatgc] data")
-	print("\tThis output file has exactly one sequence per species")
+	print("\tThis output file has exactly one sequence per species.")
+	print('\tAll resulting empty columns (places where every sequence has -, ?, n, or N)')
+	print('\tare removed, so the alignments are clean and trimmed.')
 	print("")
 	print(" Output 2 (saved in FILENAME_best_in_genus.fasta")
-	print("\tOut of all species in a genus, it picks the one with the most nucleotide data")
-	print("\tThis output file has exactly one sequence per genus (from the species with the most data)")
+	print("\tOut of all species in a genus, it picks the one with the most nucleotide data.")
+	print("\tThis output file has exactly one sequence per genus.")
+	print("\tNOTE: The garbage columns are NOT trimmed out for best_in_genus,")
+	print('\tso you will need to run the script on the best_in_genus file with the --simple flag if you want this feature.')
+	print('')
+	print('\t\tOR')
+	print('')
+	print('Simple output (saved in FILENAME_cleaned.fasta)\n\tThis only removes garbage columns, and does not reduce the number of sequences.')
 	print("")
 	print(' Output format:')
 	print('\tOutput is in fasta format.')
-	print('\tIf input was aligned: once organisms have been removed,')
-	print('\tall resulting empty columns (places where every sequence has -, ?, n, or N)')
-	print('\tare removed, so the alignments are clean and trimmed.')
 	print('')
 
 def printdebug(msg) :
@@ -298,27 +305,28 @@ def remove_garbage_columns(genes) :
 	# I tried to protect you with quotes around the filename variable.
 	#subprocess.call('egrep \'[0-9]+\' \'%s\' > \'%s_numbered_headers.txt\'' %(filename, filename), shell=True)
 
-def runReduce(data, ofname) :
+# Right now, we only trim columns for best in species.
+def runReduce(data, ofname, trimColumns) :
 	global isAligned
 	length = len((list(data.values())[0][0]).seq)
 	if isAligned :
 		printdebug('Alignment length is: %d' %length)
 	data = remove_duplicates(data, length)
-	data = remove_garbage_columns(list(data.values()))
+	if trimColumns :
+		data = remove_garbage_columns(list(data.values()))
 	print ("Writing output")
 	write_output(ofname, data)
 #	export_headers_with_numbers(ofname)
 	print('Done writing.')
 	return data
 
-def run_simple(input_file, data) :
+def run_simple(out_name, data) :
 	vals = list(data.values())
 	genes = []
 	for array in vals :
 		for gene in array :
 			genes.append(gene)
 	genes = remove_garbage_columns(genes)
-	out_name = "%s_cleaned.fasta" %input_file.split('.')[0]
 	of = open(out_name, 'w')
 	for gene in genes :
 		write_data(of, gene)
@@ -340,25 +348,28 @@ def handle_args(args) :
 	return input
 
 def main(args) :
-	input_file = handle_args(args)
 	print_info()
-	# data is a map from header to header-seq gene objects
+	input_file = handle_args(args)
+	# all these results are maps from some identifier to header-seq gene objects
+	print('Reading file . . . ')
 	species_map, genus_map, header_map  = parse_input(input_file)
 
 	global simple
 	if simple :
 		print('Running a simple version of the program.')
 		print('Output gives only one output, chopping the columns of garbage.')
-		run_simple(input_file, header_map)
+		out_name = "%s_cleaned.fasta" %input_file.split('.')[0]
+		run_simple(out_name, header_map)
 		return 0
 
 	print ("\nSelecting best duplicate species.")
 	ofname1 = "%s_best_in_species.fasta" %input_file.split('.')[0]
-	species_map = runReduce(species_map, ofname1)
+	species_map = runReduce(species_map, ofname1, True)
 
 	print ("\nSelecting best duplicate genus.")
 	ofname2 = "%s_best_in_genus.fasta" %input_file.split('.')[0]
-	genus_map = runReduce(genus_map, ofname2)
+	genus_map = runReduce(genus_map, ofname2, False)
+
 	return 0
 
 if __name__ == "__main__" :

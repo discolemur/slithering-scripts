@@ -3,16 +3,17 @@
 def info() :
 	print('\nThis script pulls files from all fa_dir* directories, takes out the core ortholog sequences,')
 	print('then creates a file in a cluster directory, or appends to existing file.\n')
+#	print('IMPORTANT: all organism names must have \'assembly\' in it to be identified as experimental data (not orthodb data)')
 
 import sys
 import glob
 import os
-import re
+#import re
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 from helpers import do_progress_update
 
 output_dir = 'multi_clusters'
-matcher = re.compile('.*assembly.*')
+#matcher = re.compile('.*assembly.*')
 
 def open_output(fname) :
 	global output_dir
@@ -28,11 +29,14 @@ def handle_file(fname, dir) :
 	out = open_output(fname)
 	input = open('%s/%s' %(dir, fname), 'r')
 	getNext = False
+	ids = set()
 	for line in input :
 		if line[0] == '>' :
-			if matcher.match(line) :
-				out.write(line)
-				getNext = True
+			id = line.split('|')
+			if len(id) > 3 and id[3] not in ids :
+					ids.add(id[3])
+					out.write(line)
+					getNext = True
 			else :
 				getNext = False
 		elif getNext :
@@ -41,8 +45,8 @@ def handle_file(fname, dir) :
 	out.close()
 
 def handle_dir(dir) :
-	print('Handling directory %s' %dir)
-	files = glob.glob('%s/*' %dir)
+	print('Handling directory %s with files *.fa' %dir)
+	files = glob.glob('%s/*.fa' %dir)
 	do_progress_update(files, handle_file, dir)
 
 def make_output_dir() :

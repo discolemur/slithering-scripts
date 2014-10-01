@@ -182,7 +182,7 @@ def get_aln_files(dir) :
 	return files
 
 def main() :
-	homolog_files = get_aln_files('orthodb_homologs')
+	homolog_files = get_aln_files('orthodb_homolog_clusters')
 	randoms_files = get_aln_files('orthodb_randoms')
 	out = open('result_orthodb_table.txt', 'w')
 	out.write('ID\tAli\tLen\tAliInternal\tLenInternal\tOut\n')
