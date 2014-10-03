@@ -278,14 +278,14 @@ def lengths_are_equal(genes) :
 def remove_garbage_columns(genes) :
 	global simple
 	if not lengths_are_equal(genes) :
-		print('ERROR: I don\'t think this input file is aligned! The sequence lengths are different!')
+		print('\n\nI don\'t think this input file is aligned! The sequence lengths are different!')
 		if not simple :
-			print('Script will still run to completion. Output will not be aligned, and no columns will be removed.')
-			print('Note that the output is affected in the following way:')
-			print('\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
+			print('\n\nI prefer aligned sequences, but I will still run to completion. Output will not be aligned, and no columns will be removed.')
+			print('\t***Note that the output is affected in the following way:***')
+			print('\t\tThe sequences with the most number of nucleotides are kept (not the highest percentage.)')
 			return reconstruct_map(genes)
 		else :
-			print('You will get no meaningful output, because simple mode requires an aligned input.')
+			print('FATAL ERROR: You will get no meaningful output, because simple mode requires an aligned input.')
 			return genes
 	size = len(genes[0].seq)
 	i = 0
