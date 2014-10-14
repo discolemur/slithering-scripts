@@ -27,12 +27,12 @@ class species_gene :
 
 def create_output(data, map, output) :
 	output.write("# cluster\torganism\tgene\n")
-	used = []
+	used = set()
 	for row in data :
 		individual = map[row[2]]
 		line = "%s\t%s\t%s\n" %(row[0], individual.species, individual.gene)
 		if line not in used :
-			used.append(line)
+			used.add(line)
 			output.write(line)
 
 def sort_input(input) :

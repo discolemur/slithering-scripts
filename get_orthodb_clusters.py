@@ -151,6 +151,7 @@ def read_file(filename, count) :
 		line = line.strip()
 		if line[0] == '>' :
 			if geth :
+				seq = seq.replace('X', '-')
 				clusters = give(clusters, cl, sp, seq)
 				geto = False
 				prev_cl = ''

@@ -21,7 +21,7 @@ def handle_file(file) :
 		if line[0] == '>' :
 			out.write('>%s\n' %change_header(line))
 		else :
-			out.write('%s\n' %line)
+			out.write('%s\n' %line.replace('X', '-'))
 	input.close()
 	out.close()
 	shutil.move(tmp, file)

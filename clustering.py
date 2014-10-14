@@ -182,7 +182,8 @@ def give_gene_to_cluster(clusters, organism, id, seq) :
 	return clusters
 
 def get_gene_id(line) :
-	global uses_dna
+	return line[1:].split(' ')[0]
+'''	global uses_dna
 	id = ''
 	line = line.strip()
 	# Remove '>'
@@ -199,6 +200,7 @@ def get_gene_id(line) :
 	else :
 		print('Error: unable to parse header.')
 	return id
+'''
 
 def read_fastas(clusters, all_names) :
 	global uses_dna

@@ -39,28 +39,38 @@ def checkpoint_time() :
 		checkpoint = timeit.default_timer()
 		print ('Time so far: %d' %(checkpoint - start))
 
+class Gene(object) :
+	def __init__(self) :
+		self.id = ''
+		self.seq = ''
+	def __eq__(self, other) :
+		if type(other) == str :
+			return self.seq == other
+		else :
+			return self.seq == other.seq
+
 class Cluster(object) :
 # genes  ===   map from organism to list of genes
-# data   ===   map from organism to sequence data
+# seqs   ===   map from gene to sequence data
 	def __init__(self) :
 		self.genes = {}
-		self.data = {}
 
-	# Do not allow paralogs
 	def is_valid(self, num_organisms) :
-		if len(self.genes) != num_organisms :
+	#	if len(self.genes) != num_organisms :
 	#		print ('Invalid cluster: has %d organisms' %len(self.genes))
-			return False
-		for key in self.genes :
-			if len(self.genes[key]) != 1:
+	#		return False
+	#	for key in self.genes :
+	#		if len(self.genes[key]) != 1:
 	#			print ('Invalid: has paralogy with %s, %s' %(key, self.genes[key]))
-				return False
+	#			return False
 		return True
 
 	def get_bin(self) :
 		return len(self.genes)
 
-	def add_gene(self, organism, gene) :
+	def add_gene(self, organism, id) :
+		gene = Gene()
+		gene.id = id
 		if organism in self.genes :
 			self.genes[organism].append(gene)
 		else :
@@ -81,16 +91,18 @@ class Cluster(object) :
 				return True
 		return False
 
-	def give(self, organism, data) :
-		if organism not in self.data :
-			self.data[organism] = data
+	def give(self, organism, gene, data) :
+		for gene in self.genes[organism] :
+			if gene.id == gene :
+				gene.seq = data
 
-	def save(self, out_file, all_names, counter) :
-		for organism in all_names :
-			out_file.write('>%d|%s|%s\n' %(counter, organism, self.genes[organism][0]))
-			if organism in self.data :
-				out_file.write(self.data[organism])
-				out_file.write('\n')
+	def save(self, out_file, counter) :
+		for organism in self.genes :
+			if organism in self.genes :
+				for gene in self.genes[organism] :
+					out_file.write('>%d_%s_%s\n' %(counter, organism, gene.id))
+					out_file.write(gene.seq)
+					out_file.write('\n')
 # Input format:
 # Cluster	gene	protein	organism	name	code	length	...
 # Assumes num_organisms is an int
@@ -169,17 +181,17 @@ def write_cluster(cluster, all_names, txt, counter) :
 #	print ('Writing cluster %d' %counter)
 	filename = "tmp_cluster"
 	out_file = open(filename, 'w')
-	cluster.save(out_file, all_names, counter)
+	cluster.save(out_file, counter)
 	out_file.close()
 #	print ('Running mafft ...')
 	# this is to silence mafft
 	nowhere = open(os.devnull, 'w')
-	subprocess.call("mafft %s > conserved_%s/cluster%d.aln" %(filename, txt, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
+	subprocess.call("mafft %s > clusters_%s/cluster%d.aln" %(filename, txt, counter), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
 	os.remove(filename)
 
 def mkdirs(name) :
-	if not os.path.exists("conserved_%s" %(name)) :
-		os.makedirs("conserved_%s" %(name))
+	if not os.path.exists("clusters_%s" %(name)) :
+		os.makedirs("clusters_%s" %(name))
 
 
 def usage(program_path) :
@@ -223,13 +235,14 @@ def main(args) :
 	percent = total / 10
 	if percent == 0 :
 		percent = 1
+	txt = args[2].split('.')[0]
 	# Write aligned clusters
 	for bin in clusters :
 		for cluster in clusters[bin] :
 			if counter % percent == 0 :
 				print ("Progress: %.2f%%" %(counter * 100.0 / total))
 				checkpoint_time()
-			write_cluster(cluster, all_names, args[2], counter)
+			write_cluster(cluster, all_names, txt, counter)
 			counter += 1
 	print ("Done.")
 	# time

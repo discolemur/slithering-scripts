@@ -1,6 +1,7 @@
 #! /bin/bash
 
-location="/fslgroup/fslg_BybeeLab/compute/TRANSCRIPTOMES/multiparanoid/InParanoidTables"
+mkdir ~/mined_tables
+location=~/mined_tables/
 echo "Find mined files in: $location"
 
 function is_valid ()
@@ -42,7 +43,7 @@ function special_print ()
 # $1 is the item to copy
 function copy ()
 {
-	cp $1 $location/
+	cp $1 $location
 }
 
 for item in *
