@@ -16,7 +16,7 @@ function create_script ()
         echo "#SBATCH -o slurm_output_$file.txt" >> $file.sh
         echo "#SBATCH -e slurm_error_$file.err" >> $file.sh
         echo "" >> $file.sh
-	echo "../bin/hamstr -sequence_file=$file -taxon=$taxon -hmmset=orthodb_extracts -refspec=RPROL" >> $file.sh
+	echo "../bin/hamstr -sequence_file=$file -taxon=$taxon -hmmset=modelorganisms_hmmer3 -refspec=DROME" >> $file.sh
 }
 
 for file in *.pep

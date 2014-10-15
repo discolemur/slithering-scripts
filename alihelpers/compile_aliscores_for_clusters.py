@@ -77,6 +77,7 @@ def read_aln(seqfile) :
 
 def handle_dir(ofhandle, dir, out) :
 	files = glob.glob('%s/*List*' %dir)
+	print('Found %d files' %len(files))
 	for alifile in files :
 		seqfile = alifile.split('_List')[0]
 		name = '%s' %(seqfile.split('.')[0].split('/')[-1])

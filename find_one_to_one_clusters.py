@@ -20,9 +20,12 @@ def is_one_to_one(infile, num_sp) :
 				break
 			seqs[sp] = ''
 		else:
-			seqs[sp] += line[:-1]
+			seqs[sp] += line[:-1].replace('-','')
 	if len(list(seqs.keys())) != num_sp :
 		result = False
+	for sp in seqs :
+		if len(seqs[sp]) == 0 :
+			result = False
 	return result
 
 def main(num_sp) :
