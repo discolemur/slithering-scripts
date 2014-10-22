@@ -28,7 +28,7 @@ def handle_file(file) :
 	return 0
 
 def main(args) :
-	files = glob.glob('*.aln')
+	files = glob.glob('*.fa')
 	for file in files : handle_file(file)
 
 if __name__ == "__main__" :

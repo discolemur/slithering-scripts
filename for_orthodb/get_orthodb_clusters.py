@@ -123,6 +123,7 @@ def get_mean_len(homologs) :
 def get_random_clusters(homologs) :
 	count = len(homologs)
 	mean = get_mean_len(homologs)
+	print('Lambda: %f' %mean)
 	lengths = poisson(mean, count)
 	randoms = []
 	for i in range(0, count) :
@@ -172,7 +173,7 @@ def read_file(filename, count) :
 	randoms = get_random_clusters(homologs)
 	print("Got %d random clusters" %len(randoms))
 	#write_all(list(homologs), 'orthodb_homolog_clusters')
-	write_all(list(randoms), 'orthodb_random_clusters')
+	#write_all(list(randoms), 'orthodb_random_clusters')
 	ifhandle.close()
 
 def info() :

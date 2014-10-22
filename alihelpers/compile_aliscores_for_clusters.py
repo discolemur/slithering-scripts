@@ -35,7 +35,10 @@ def get_amino_acid_stats(seqs) :
 				seqstats[AAcodes[aa]] += 1
 				size += 1
 		for i in range(1,5) :
-			stats[i].append(Fraction(seqstats[i], size))
+			if size != 0 :
+				stats[i].append(Fraction(seqstats[i], size))
+			else :
+				stats[i].append(0)
 	charged = math.sqrt(variance(stats[1]))
 	uncharged = math.sqrt(variance(stats[2]))
 	special = math.sqrt(variance(stats[3]))

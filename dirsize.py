@@ -3,6 +3,7 @@
 import glob
 import sys
 
-if len(sys.argv) > 0 :
+if len(sys.argv) > 1 :
 	print('Length of %s : %d' %(sys.argv[1], len(glob.glob(sys.argv[1]))))
-
+else :
+	print(len(glob.glob('*')))
