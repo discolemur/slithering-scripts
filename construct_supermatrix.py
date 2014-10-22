@@ -73,7 +73,7 @@ def main(args) :
 	if len(args) != 1 :
 		usage(args[0])
 		exit()
-	files = glob.glob("cluster*")
+	files = glob.glob("*aln")
 	build_super_matrix(files)
 
 if __name__ == "__main__" :

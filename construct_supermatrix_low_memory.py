@@ -17,7 +17,7 @@ def produce_headers(sampleFile) :
 	file = open(sampleFile, 'r')
 	for line in file :
 		if line[0] == '>' :
-			line = line.strip()
+			line = line.strip()[1:]
 			line = line.split(' ')
 			headers.append(">%s" %line[-1])
 	return headers
