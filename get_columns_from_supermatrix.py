@@ -26,9 +26,9 @@ def get_columns(numcols, sm, species, seqlen) :
     return res
 
 def write_columns(cols_map, outfile, dir) :
-    with open('%s/%s' %(dir, outfile)) as fh :
+    with open('%s/%s' %(dir, outfile), 'w') as fh :
         for sp in cols_map :
-            fh.write('%s\n%s\n' %(sp, cols_map[sp]))
+            fh.write('>%s\n%s\n' %(sp, cols_map[sp]))
 
 def main(supermatrix, numcols, numreps, dir) :
     sm , species = load_into_memory(supermatrix)

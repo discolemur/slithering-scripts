@@ -1,5 +1,6 @@
 #! /bin/bash
 
+# Takes one argument: directory containing batch scripts.
 
 function use_dir() {
 	counter=1
@@ -24,10 +25,8 @@ function use_dir() {
 }
 
 # Go into cluster directories.
-for dir in *clusters
-do
-	if [ -d $dir ]
-	then
-		use_dir $dir
-	fi
-done
+dir=$1
+if [ -d $dir ]
+then
+	use_dir $dir
+fi

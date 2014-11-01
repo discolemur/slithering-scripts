@@ -48,6 +48,6 @@ function copy ()
 
 for item in *
 do
-	recurse special_print $item
+	recurse copy $item
 done
 
