@@ -19,7 +19,7 @@ do
         continue
     fi
     echo '#!/bin/bash' > $batch
-    echo '#SBATCH --time=5:00 --ntasks=1 --nodes=1 --mem-per-cpu=8G -J Ali' >> $batch
+    echo '#SBATCH --time=0:30 --ntasks=1 --nodes=1 --mem-per-cpu=500M -J Ali' >> $batch
     echo '' >> $batch
     echo "perl Aliscore.02.2.pl -i $file" >> $batch
 #    sbatch $batch

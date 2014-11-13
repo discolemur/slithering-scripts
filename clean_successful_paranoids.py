@@ -18,7 +18,7 @@ def main() :
             sqlt = sqlt[0]
             print(sqlt)
             shutil.copy(sqlt, sqlt.split('/')[1])
-            os.rmdir(dir)
+            shutil.rmtree(dir)
             os.remove(batch)
 
 if __name__ == '__main__' :

@@ -1,20 +1,26 @@
 #! /usr/bin/env python
 
-import sys
+from argparse import ArgumentParser
 import glob
 
-def is_one_to_one(infile, num_sp) :
+def get_sp(line, source) :
+    if source == 'hamstr' :
+        return line.split('|')[2]
+    if '|' in line :
+        sp = line.split('|')[1]
+    elif '_' in line :
+        sp = line.split('_')[1]
+    else :
+        print('Couldn\'t parse the species, sorry.')
+    return sp
+
+def is_one_to_one(infile, num_sp, source) :
     result = True
     seqs = {}
     sp = ''
     for line in open(infile, 'r'):
         if line[0] == '>' :
-            if '|' in line :
-                sp = line.split('|')[1]
-            elif '_' in line :
-                sp = line.split('_')[1]
-            else :
-                print('Couldn\'t parse the species, sorry.')
+            sp = get_sp(line, source)
             if sp in seqs :
                 result = False
                 break
@@ -28,7 +34,12 @@ def is_one_to_one(infile, num_sp) :
             result = FalseA
     return result
 
-def main(num_sp) :
+def get_one_to_ones(files, num_sp, source) :
+    for file in files :
+        if is_one_to_one(file, num_sp, source) :
+            yield file
+ 
+def main(num_sp, source) :
     files = glob.glob('*.aln')
     if len(files) == 0 :
         files = glob.glob('*.fasta')
@@ -40,14 +51,17 @@ def main(num_sp) :
             print('Sorry, you lose.')
             exit(1)
     counter = 0
-    for file in files :
-        if is_one_to_one(file, num_sp) :
+    for file in get_one_to_ones(files, num_sp, source) :
             print(file)
             counter += 1
     print ('Total: %d' %counter)
     return 0
 
 if __name__ == '__main__' :
-    main(int(sys.argv[1]))
+    parser = ArgumentParser()
+    parser.add_argument('source', help='Source of clusters (lets us know how to parse the headers) (options: hamstr, other)')
+    parser.add_argument('num_sp', help='Number of species.', type=int)
+    args = parser.parse_args()
+    main(args.num_sp, args.source)
 
 print('Done.')
