@@ -3,9 +3,7 @@
 from argparse import ArgumentParser
 import glob
 
-def get_sp(line, source) :
-    if source == 'hamstr' :
-        return line.split('|')[2]
+def get_sp(line) :
     if '|' in line :
         sp = line.split('|')[1]
     elif '_' in line :
@@ -14,13 +12,13 @@ def get_sp(line, source) :
         print('Couldn\'t parse the species, sorry.')
     return sp
 
-def is_one_to_one(infile, num_sp, source) :
+def is_one_to_one(infile, num_sp) :
     result = True
     seqs = {}
     sp = ''
     for line in open(infile, 'r'):
         if line[0] == '>' :
-            sp = get_sp(line, source)
+            sp = get_sp(line)
             if sp in seqs :
                 result = False
                 break
@@ -34,12 +32,12 @@ def is_one_to_one(infile, num_sp, source) :
             result = FalseA
     return result
 
-def get_one_to_ones(files, num_sp, source) :
+def get_one_to_ones(files, num_sp) :
     for file in files :
-        if is_one_to_one(file, num_sp, source) :
+        if is_one_to_one(file, num_sp) :
             yield file
  
-def main(num_sp, source) :
+def main(num_sp) :
     files = glob.glob('*.aln')
     if len(files) == 0 :
         files = glob.glob('*.fasta')
@@ -51,7 +49,7 @@ def main(num_sp, source) :
             print('Sorry, you lose.')
             exit(1)
     counter = 0
-    for file in get_one_to_ones(files, num_sp, source) :
+    for file in get_one_to_ones(files, num_sp) :
             print(file)
             counter += 1
     print ('Total: %d' %counter)
@@ -59,9 +57,7 @@ def main(num_sp, source) :
 
 if __name__ == '__main__' :
     parser = ArgumentParser()
-    parser.add_argument('source', help='Source of clusters (lets us know how to parse the headers) (options: hamstr, other)')
     parser.add_argument('num_sp', help='Number of species.', type=int)
     args = parser.parse_args()
-    main(args.num_sp, args.source)
-
-print('Done.')
+    main(args.num_sp)
+    print('Done.')

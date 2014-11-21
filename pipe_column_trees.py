@@ -12,10 +12,10 @@ import os
 def write_batch(file) :
     batch = '%s.sh' %file
     fh = open(batch, 'w')
-	fh.write('#!/bin/bash\n')
-	fh.write('#SBATCH --time=120:00:00\n#SBATCH --ntasks=32\n')
-	fh.write('#SBATCH --nodes=1\n#SBATCH --mem-per-cpu=8G\n')
-	fh.write('#SBATCH -J "iqtree"\n')
+    fh.write('#!/bin/bash\n')
+    fh.write('#SBATCH --time=120:00:00\n#SBATCH --ntasks=32\n')
+    fh.write('#SBATCH --nodes=1\n#SBATCH --mem-per-cpu=8G\n')
+    fh.write('#SBATCH -J "iqtree"\n')
     fh.write('/fslgroup/fslg_BybeeLab/software/iqtree-omp-0.9.6-Linux/bin/iqtree -bb 1000 -m TEST -s \'%s\'\n' %file)
     fh.close()
     return batch

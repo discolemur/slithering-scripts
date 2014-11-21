@@ -28,7 +28,7 @@ function create_script ()
         echo "#SBATCH --time=168:00:00   # walltime" >> $file.sh
         echo "#SBATCH --ntasks=1   # number of processor cores (i.e. tasks)" >> $file.sh
         echo "#SBATCH --nodes=1   # number of nodes" >> $file.sh
-        echo "#SBATCH --mem-per-cpu=2G   # memory per CPU core" >> $file.sh
+        echo "#SBATCH --mem-per-cpu=6G   # memory per CPU core" >> $file.sh
         echo "#SBATCH -J stupid_program_$file   # job name" >> $file.sh
         echo "#SBATCH --mail-user=nick.j.g12@gmail.com   # email address" >> $file.sh
         echo "#SBATCH --mail-type=FAIL" >> $file.sh
