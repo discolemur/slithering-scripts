@@ -6,6 +6,8 @@ import subprocess
 import timeit
 import argparse
 
+# Please only give me files from transdecoder. This means .pep (for proteins) and .cds (for dna).
+
 def info() :
     print ('\nSpecies have only unique genes, no paralogy')
     print ('Missing species are filled in with dashes after alignment')
@@ -46,11 +48,9 @@ def checkpoint_time() :
         print('Time so far: %d' %(checkpoint - start))
 
 class Cluster(object) :
-# genes  ===   map from organism to list of genes
-# data   ===   map from organism to sequence data
+# genes  ===   {organism} -> {id} -> sequence
     def __init__(self) :
         self.genes = {}
-        self.data = {}
 
 #    No paralogy and no missing organisms
     def is_conserved(self) :
@@ -60,14 +60,14 @@ class Cluster(object) :
     def is_semiconserved(self) :
         if len(list(self.genes.keys())) < 2 :
             return False
-        for key in self.genes :
-            if len(self.genes[key]) != 1:
+        for sp in self.genes :
+            if len(list(self.genes[sp].keys())) != 1:
                 return False
         return True
 
 #    No missing organisms
     def is_complete(self) :
-        if len(self.genes) != num_organisms :
+        if len(list(self.genes.keys())) != num_organisms :
             return False
         return True
 
@@ -81,16 +81,17 @@ class Cluster(object) :
             return self.is_semiconserved()
         elif output_type == 'a' :
             return True
-        return False
+        else :
+            print('Unknown output type. Tell Nick that there is a bug.')
+            return False
         
     def get_bin(self) :
         return len(self.genes)
 
-    def add_gene(self, organism, id) :
-        if organism in self.genes :
-            self.genes[organism].append(id)
-        else :
-            self.genes[organism] = [id]
+    def add_gene_id(self, organism, id) :
+        if organism not in self.genes :
+            self.genes[organism] = {}
+        self.genes[organism][id] = ''
 
     def get_all_names_sorted(self) :
         return sorted(self.genes.keys())
@@ -101,27 +102,21 @@ class Cluster(object) :
             print ('genes:')
             print (self.genes[key])
 
-    def contains(self, organism, gene) :
-        if organism in self.genes :
-            if gene in self.genes[organism] :
-                return True
-        return False
-
-    def set_sequence(self, organism, seq) :
-        self.data[organism] = seq
-
     def save(self, out_file, all_names, counter) :
-        if len(self.data) == 0 :
+        if len(self.genes) == 0 :
             print ('ERROR! All sequences were lost in this cluster %d.' %counter)
             out_file.write('ERROR! All sequences were lost in this cluster %d.' %counter)
+            print(self.genes)
             return False
         for organism in all_names :
-            id = ''
-            if organism in self.genes :
-                id = self.genes[organism][0]
-            out_file.write('>%d|%s|%s\n' %(counter, organism, id))
-            if organism in self.data :
-                seq = self.data[organism]
+            if organism not in self.genes :
+                out_file.write('>%d|%s|\n' %(counter, organism))
+                continue
+            for id in self.genes[organism] :
+                out_file.write('>%d|%s|%s\n' %(counter, organism, id))
+                seq = self.genes[organism][id]
+                if seq == '' :
+                    print('Oh no! Dead sequence for %s %s' %(organism, id))
                 out_file.write(seq)
                 out_file.write('\n')
         return True
@@ -138,6 +133,7 @@ def add_cluster(clusters, cluster, num_organisms) :
 # Input format:
 # cluster    organism.pep    gene
 # Assumes num_organisms is an int
+# clusters = {bin} -> [Cluster]
 def read_multiparanoid() :
     global multiparanoid
     global num_organisms
@@ -162,24 +158,12 @@ def read_multiparanoid() :
         # remove the file extension
         organism = line[1].split('.')[0]
         id = line[2]
-        if uses_dna :
-            id = id.split(':')[0]
-        cluster.add_gene(organism, id)
+        cluster.add_gene_id(organism, id)
     in_file.close()
     if 0 in clusters :
         del clusters[0]
     for bin in clusters :
         print ('There are %d clusters in bin %d' %(len(clusters[bin]), bin))
-    return clusters
-
-def give_gene_to_cluster(clusters, organism, id, seq) :
-    if id == '' or seq == '' :
-        return clusters
-    for key in clusters :
-        for cluster in clusters[key] :
-            if cluster.contains(organism, id) :
-                cluster.set_sequence(organism, seq)
-                return clusters
     return clusters
 
 # Example header:
@@ -190,49 +174,36 @@ def give_gene_to_cluster(clusters, organism, id, seq) :
 
 def get_gene_id(line) :
     return line[1:].split(' ')[-1].strip()
-'''    global uses_dna
-    id = ''
-    line = line.strip()
-    # Remove '>'
-    line = line[1:]
-    line = line.split(' ')
-    if line[0] == '' :
-        line = line[1:]
-    # Handle simple case and normal fasta format case
-    if uses_dna or len(line) == 1:
-        id = line[0]
-    # Handle complex case for transdecoder headers
-    elif not uses_dna :
-        id = line[-1].split(' ')[-1]
-    else :
-        print('Error: unable to parse header.')
-    return id
-'''
 
-def read_fastas(clusters, all_names) :
+# fastas = {name} -> {id} -> seq
+def read_fastas(all_names) :
     global uses_dna
+    fastas = {}
     for name in all_names :
         filename = name + '.pep'
         if uses_dna :
-            filename = name + '.fasta'
+            filename = name + '.cds.fasta'
         print('Reading %s...' %filename)
         in_file = open(filename, 'r')
+        fastas[name] = {}
         id = ''
-        seq = ''
         for line in in_file :
+            line = line.strip()
             if line[0] == '>' :
-                # Use previous gene
-                if seq == '' and id != '' :
-                    print ('Error: did not get gene sequence for id %s' %id)
-                clusters = give_gene_to_cluster(clusters, name, id, seq)
-                # Prepare to get new gene
                 id = get_gene_id(line)
-                if id == '' :
-                    print ('Error: did not parse gene id from %s' %line)
-                seq = ''
+                fastas[name][id] = ''
             else :
-                seq = seq + line
+                fastas[name][id] += line
         in_file.close()
+    return fastas
+
+# genes  ===   {organism} -> {id} -> sequence
+def load_clusters(fastas, clusters) :
+    for bin in clusters :
+        for cluster in clusters[bin] :
+            for name in cluster.genes :
+                for id in cluster.genes[name] :
+                    cluster.genes[name][id] = fastas[name][id]
     return clusters
 
 # this is to silence mafft
@@ -354,7 +325,8 @@ def main() :
     checkpoint_time()
     # Read fasta files
     print ("Gathering clusters")
-    clusters = read_fastas(clusters, all_names)
+    fastas = read_fastas(all_names)
+    clusters = load_clusters(fastas, clusters)
     # time
     checkpoint_time()
     writeOutput(clusters, all_names, getNumClusters(clusters))

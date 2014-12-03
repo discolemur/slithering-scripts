@@ -29,7 +29,7 @@ def is_one_to_one(infile, num_sp) :
         result = False
     for sp in seqs :
         if len(seqs[sp]) == 0 :
-            result = FalseA
+            result = False
     return result
 
 def get_one_to_ones(files, num_sp) :
