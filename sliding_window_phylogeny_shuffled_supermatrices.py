@@ -9,10 +9,10 @@ from argparse import ArgumentParser
 random.seed()
 
 def check_fasta(fasta) :
-    ''' Returns a dictionary {header(string)} -> sequence(string)
+    ''' Returns a dictionary {header_string} -> sequence_string
 
     Parameters :
-        fasta : {header(string)} -> [ sequence(string) ]
+        fasta : {header_string} -> [ sequence_string ]
     Makes sure there is only one sequence per header in the fasta.
     Exits the program if not.
     '''
@@ -24,7 +24,7 @@ def check_fasta(fasta) :
     return fasta
 
 def read_fasta(infile) :
-    ''' Returns a dictionary in this schema -- {header(string)} -> sequence(string)
+    ''' Returns a dictionary in this schema -- {header_string} -> sequence_string
     Parameters :
         infile : string
     '''

@@ -2,12 +2,13 @@
 
 import glob
 import argparse
+import random
 
 # Assume all cluster files are in the directory
 # Assume all cluster files begin with the name "cluster"
 # Assume the organisms in the clusters always come in the same order
 
-
+#     HAMSTR clusters have been updated. This is depreciated now.
 #                          FOR HAMSTR
 # Example headers
 # >2055_RPROL_OD_Ischnura_cervula_sp_A19_assembly_comp11416_c0_seq1_248_796_+_1
@@ -63,7 +64,7 @@ def compile_clusters(clusters, all_names) :
             if name in fasta_map :
                 final_map[name] += fasta_map[name]
             else :
-        #        print('Using filler.')
+                print('Using filler.')
                 final_map[name] += filler
     return final_map
 
@@ -76,6 +77,11 @@ def write_super(final_map, super_file) :
     for name in final_map :
         fh.write('>%s\n%s\n' %(name, final_map[name]))
     fh.close()
+
+def gene_bootstrap_shuffle(clusters) :
+    # Sample with replacement the size of clusters array.
+    result = [random.choice(clusters) for i in range(len(clusters))]
+    return result
 
 def build_super_matrix(files) :
     all_names = set()
@@ -92,15 +98,20 @@ def build_super_matrix(files) :
         counter += 1
         if counter % percent == 0 :
             print ("Progress: %.2f%%" %(counter * 100.0 / total))
-    final_map = compile_clusters(clusters, all_names)
-    super_file = 'super.fasta'
-    write_super(final_map, super_file)
-    print ('Output is found in %s' %super_file)
+    return clusters, all_names
 
-# args[1] is the number of organisms
+def bootstrap(clusters, all_names, count) :
+    for i in range(1, count+1) :
+        new_clusters = gene_bootstrap_shuffle(clusters)
+        final_map = compile_clusters(new_clusters, all_names)
+        super_file = 'gene_bootstrap%d.fasta' %i
+        write_super(final_map, super_file)
+
 def main() :
     files = glob.glob("*aln")
-    build_super_matrix(files)
+    clusters, all_names = build_super_matrix(files)
+    num_replicates = 100
+    bootstrap(clusters, all_names, num_replicates)
 
 if __name__ == "__main__" :
     main()

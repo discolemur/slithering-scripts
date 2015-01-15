@@ -5,7 +5,7 @@ import subprocess
 from argparse import ArgumentParser
 
 def read_fasta(infile) :
-    ''' Returns a dictionary in this schema -- {header(string)} -> [ sequence(string) ]
+    ''' Returns a dictionary in this schema -- {header_string} -> [ sequence_string ]
     Parameters :
         infile : string
     '''
@@ -25,7 +25,7 @@ def read_fasta(infile) :
     return fasta_map
 
 def check_fasta(fasta) :
-    ''' Returns a dictionary {header(string)} -> sequence(string)
+    ''' Returns a dictionary {header_string} -> sequence_string
 
     Parameters :
         fasta : (the output of read_fasta)

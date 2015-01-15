@@ -47,6 +47,13 @@ def checkpoint_time() :
         checkpoint = timeit.default_timer()
         print('Time so far: %d' %(checkpoint - start))
 
+def change_header(line) :
+    line = line.replace('|', '_')
+    line = line.replace(':', '_')
+    line = line.replace('(', '_')
+    line = line.replace(')', '_')
+    return line
+
 class Cluster(object) :
 # genes  ===   {organism} -> {id} -> sequence
     def __init__(self) :
@@ -110,10 +117,11 @@ class Cluster(object) :
             return False
         for organism in all_names :
             if organism not in self.genes :
-                out_file.write('>%d|%s|\n' %(counter, organism))
                 continue
             for id in self.genes[organism] :
-                out_file.write('>%d|%s|%s\n' %(counter, organism, id))
+                header = '>%d|%s|%s' %(counter, organism, id)
+                header = change_header(header)
+                out_file.write('%s\n' %header)
                 seq = self.genes[organism][id]
                 if seq == '' :
                     print('Oh no! Dead sequence for %s %s' %(organism, id))
