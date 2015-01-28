@@ -1,6 +1,8 @@
 #! /bin/bash 
 
-file="yn00.config"
+# $1 is the sequence file
+
+file="yn00.ctl"
 
 echo """
       seqfile = $1 * sequence data file name
@@ -20,3 +22,5 @@ echo """
 * 10: blepharisma nu.
 * These codes correspond to transl_table 1 to 11 of GENEBANK.
 """ > $file
+
+yn00

@@ -1,80 +1,58 @@
 #! /usr/bin/env python
 
 import glob
-import sys
 
-# Output Format:
-#
-# cluster1    cluster2    ...
-# sp1    1432    325253    ...
-# sp2    326526    436    ...
-# ...
+'''
+This script counts the number of species and number of genes in each cluster.
+The input is a .disco file.
+'''
 
-def usage(name) :
-    print ("Usage: %s" %name)
+def count_disco(clusters) :
+    num_genes_arr = []
+    num_sp_arr = []
+    ids = []
+    for id in clusters :
+        cluster = clusters[id]
+        species = set()
+        for item in cluster :
+            sp = item[0]
+            species.add(sp)
+        num_genes = len(cluster)
+        num_sp = len(species)
+        num_genes_arr.append(num_genes)
+        num_sp_arr.append(num_sp)
+        ids.append(id)
+    return num_genes_arr, num_sp_arr, ids
 
-def get_organisms(file) :
-    in_file = open(file, 'r')
-    result = []
-    for line in in_file :
-        line = line.strip()
-        if line[0] == '>' :
-            result.append(line.split(' ')[1])
-    in_file.close()
-    print(result)
-    return result
+def read_disco(file) :
+    fh = open(file, 'r')
+    clusters = {}
+    for line in fh :
+        if line[0] == '#' :
+            continue
+        line = line.strip().split('\t')
+        if line[0] not in clusters :
+            clusters[line[0]] = []
+        clusters[line[0]].append(line[1:])
+    fh.close()
+    return clusters
 
-def count_line(line) :
-    counter = 0
-    for char in line :
-        if char != '-' :
-            counter += 1
-    return counter
+def write_result(file, num_genes_arr, num_sp_arr, ids) :
+    outfile = '%s.counts' %file
+    fh = open(outfile, 'w')
+    fh.write('#id\tnum_genes\tnum_species\n')
+    for i in range(len(ids)) :
+        fh.write('%s\t%s\t%s\n' %(ids[i], num_genes_arr[i], num_sp_arr[i]))
+    fh.close()
 
-def add_data(file, data) :
-    in_file = open(file, 'r')
-    i = -1
-    counter = 0
-    for line in in_file :
-        line = line.strip()
-        if line[0] == '>' :
-            if i == len(data) :
-                data.append([])
-            if i >= 0 :
-                data[i].append(counter)
-            counter = 0
-            i += 1
-        else :
-            counter += count_line(line)
-    if i == len(data) :
-        data.append([])
-    data[i].append(counter)
-    in_file.close()
-    return data
-
-def main(args) :
-    if len(args) != 1 :
-        usage(args[0])
-        exit()
-    files = glob.glob("cluster*")
-    organisms = get_organisms(files[0])
-    # 2d array
-    data = []
-    out_file = open("stats_for_clusters", 'w')
-    out_file.write('species\t')
+def main() :
+    files = glob.glob('*.disco')
     for file in files :
-        out_file.write("%s\t" %file.split('.')[0])
-        data = add_data(file, data)
-    out_file.write('\n')
-    i = 0
-    for array in data :
-        out_file.write('%s\t' %organisms[i])
-        i += 1
-        for item in array :
-            out_file.write('%s\t' %item)
-        out_file.write('\n')
-    out_file.close()
+        clusters = read_disco(file)
+        num_genes_arr, num_sp_arr, ids = count_disco(clusters)
+        write_result(file, num_genes_arr, num_sp_arr, ids)
 
-if __name__ == "__main__" :
-    main(sys.argv)
-
+if __name__ == '__main__' :
+    print('Working.')
+    main()
+    print('Done.')

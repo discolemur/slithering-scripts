@@ -33,9 +33,10 @@ def write_columns(cols_map, outfile, dir) :
 def main(supermatrix, numcols, numreps, dir) :
     sm , species = load_into_memory(supermatrix)
     seqlen = len(sm[species[0]])
+    truncated = supermatrix.split('.')[0][:8]
     for i in range(1, numreps + 1) :
         cols_map = get_columns(numcols, sm, species, seqlen)
-        outfile = 'columns%d.aln' %i
+        outfile = '%d_%s_%dcolumns.aln' %(i, truncated, numcols)
         write_columns(cols_map, outfile, dir)
 
 if __name__ == '__main__' :

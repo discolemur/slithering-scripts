@@ -229,6 +229,7 @@ def write_cluster(cluster, all_names, counter) :
     out_file.close()
 #    checkpoint_time()
 #    print ('Running mafft ...')
+    sys.stdout.write('.')
     subprocess.call("mafft %s > %s/cluster%d_bin%d.aln" %(filename, dir_name, counter, cluster.get_bin()), stdout=nowhere, stderr=subprocess.STDOUT, shell=True)
     #subprocess.call("mafft %s > %s/cluster%d_bin%d.aln" %(filename, dir_name, counter, cluster.get_bin()), shell=True)
     os.remove(filename)
@@ -262,6 +263,7 @@ def writeOutput(clusters, all_names, total) :
         percent = 1
     # Write aligned clusters
     for bin in clusters :
+        print('Handling bin %d' %bin)
         for cluster in clusters[bin] :
             if counter % percent == 0 :
                 print ("Progress: %.2f%%" %(counter * 100.0 / total))

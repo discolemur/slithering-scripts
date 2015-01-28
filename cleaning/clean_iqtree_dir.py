@@ -67,6 +67,9 @@ def main(dir, num_threads) :
     remove_by_regex('*.splits*')
     print('Handling *.aln')
     files = glob.glob('*.aln')
+    if len(files) == 0 :
+        if input('Are these .fasta files, not .aln? Y/N ') == 'Y' :
+            files = glob.glob('*.fasta')
     run_threads(num_threads, files)
 
 if __name__ == '__main__' :

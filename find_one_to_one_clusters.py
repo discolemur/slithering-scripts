@@ -5,10 +5,11 @@ from argparse import ArgumentParser
 import glob
 
 def get_sp(line) :
+    line = line.split('_assembly')[0]
     if '|' in line :
         sp = line.split('|')[1]
     elif '_' in line :
-        sp = line.split('_')[1]
+        sp = '_'.join(line.split('_')[1:])
     else :
         print('Couldn\'t parse the species, sorry.')
     return sp
@@ -34,6 +35,7 @@ def check_file(infile, num_sp, semicon) :
             seq = ''
             # No paralogs (gene duplication)
             if sp in names :
+                #print('Has paralog %s' %sp)
                 return False
             names.add(sp)
         else :
@@ -43,6 +45,7 @@ def check_file(infile, num_sp, semicon) :
         non_blanks.add(sp)
     # No gene loss (conserved)
     if len(list(non_blanks)) != num_sp and not semicon :
+        #print('Has gene loss %d' %len(list(non_blanks)))
         return False
     return True
 
