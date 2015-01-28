@@ -14,7 +14,7 @@ for line in fh :
         gene = 'BOGUS_FACE'
         trans = 'a'
         if len(line) == 1 :
-            gene = line[1:]
+            gene = line[0]
         else :
             trans = line[0]
             gene = line[1].split('=')[1]
