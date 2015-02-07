@@ -67,6 +67,30 @@ def fix_headers(old_file) :
     ifh.close()
     shutil.move(new_file, old_file)
 
+# Must remove stop codons, including before '-' characters, to handle indels. They may not all stop at the end of the alignment.
+def remove_stop_codons(seq) :
+    stop_codons = ['TAG','TAA','TGA']
+    nucs = 0
+    seq = list(seq)
+    codon = ''
+    places = []
+    for i in range(1, len(seq) + 1) :
+        # Look backwards
+        pos = 0 - i
+        if nucs == 3 :
+            break
+        if seq[pos] != '-' :
+            codon = seq[pos] + codon
+            places.append(pos)
+            nucs += 1
+    # places is sorted , least negative to most negative
+    if codon.upper() in stop_codons :
+        size = len(seq)
+        # Remove locations, from back to front to keep from frame shift errors.
+        for pos in places :
+            del(seq[size + pos])
+    return ''.join(seq)
+
 def copy_to_tmp(infile, tmpfile) :
     fasta_map = {}
     ifh = open(infile, 'r')
@@ -76,16 +100,13 @@ def copy_to_tmp(infile, tmpfile) :
             header = line
             fasta_map[header] = ''
         else :
-            fasta_map[header] += line.upper()
+            fasta_map[header] += line
     ifh.close()
     ofh = open(tmpfile, 'w')
     for header in fasta_map :
-        # Remove the stop codon.
         seq = fasta_map[header]
-        stop_codons = ['TAG','TAA','TGA']
-        if seq[-3:] in stop_codons :
-            print('Yay! Removing stop codons at the end of sequences!')
-            seq = seq[:-3]
+        # Remove the stop codon.
+        seq = remove_stop_codons(seq)
         ofh.write('%s\n%s\n' %(header, seq))
     ofh.close()
 
