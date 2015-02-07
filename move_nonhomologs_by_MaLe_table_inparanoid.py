@@ -49,6 +49,7 @@ def is_non_homologous(row) :
         return False
     else :
         print('OH NO! UNKNOWN HOMOLOGY! Will not move it.')
+        print(row)
         return False
 
 def move_cluster(infile, in_dir, out_dir) :
@@ -70,8 +71,8 @@ def main(infile, in_dir) :
             H.add('%s' %row[-1][1:-1])
     files = glob.glob('%s/*.aln' %in_dir)
     for file in files :
-        #name = file.split('/')[-1].split('ALICUT_')[1].split('.aln')[0]
-        name = file.split('/')[-1].split('.aln')[0]
+        name = file.split('/')[-1].split('ALICUT_')[1].split('.aln')[0]
+        #name = file.split('/')[-1].split('.aln')[0]
         if name in NH :
             move_cluster(file, in_dir, out_dir)
         elif name not in H :

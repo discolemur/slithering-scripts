@@ -20,13 +20,14 @@ def write_output(seqs, filename) :
     outfile.close()
 
 def removeDuplicates(filename) :
+    log = open('%s.log' %filename, 'w')
     file = open(filename, 'r')
     id = ''
     header = ''
     seq = ''
     # map from sequence to header
     seqs = {}
-    had_duplicate = False
+    num_duplicates = 0
     for line in file :
         line = line.strip()
         if line[0] == '>' :
@@ -34,8 +35,8 @@ def removeDuplicates(filename) :
                 if seq not in seqs :
                     seqs[seq] = header
                 else :
-                    print('%s is the same as %s' %(id, parse_header(seqs[seq])))
-                    had_duplicate = True
+                    log.write('%s is the same as %s\n' %(id, parse_header(seqs[seq])))
+                    num_duplicates += 1
                 id = ''
                 seq = ''
             id = parse_header(line)
@@ -46,11 +47,11 @@ def removeDuplicates(filename) :
                 line = line[:-1]
             seq = seq + line
     file.close()
-    if had_duplicate :
+    log.close()
+    if num_duplicates > 0 :
         write_output(seqs, filename)
-    else :
-        print('%s had no duplicate sequences.' %filename)
-    return had_duplicate
+    print('%s\t%d' %(filename, num_duplicates))
+    return num_duplicates
 
 def main(args) :
     parser = argparse.ArgumentParser()

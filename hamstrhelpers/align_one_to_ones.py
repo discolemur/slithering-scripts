@@ -2,7 +2,7 @@
 
 import sys
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
-from find_one_to_one_clusters import get_one_to_ones
+from find_one_to_one_clusters import check_all_files
 from argparse import ArgumentParser
 import subprocess
 import glob
@@ -10,7 +10,7 @@ import glob
 
 def main(num_sp) :
     files = glob.glob('*.fa')
-    for file in get_one_to_ones(files, num_sp) :
+    for file in check_all_files(files, num_sp, False) :
         alnfile = '%s.aln' %file.split('.')[0]
         print(alnfile)
         subprocess.call('mafft --auto \'%s\' > \'%s\'' %(file, alnfile), shell=True)

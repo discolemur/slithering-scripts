@@ -3,7 +3,12 @@
 import glob
 import sys
 
+length = 0
+
 if len(sys.argv) > 1 :
-    print('Length of %s : %d' %(sys.argv[1], len(glob.glob('%s/*' %sys.argv[1]))))
+    length = len(glob.glob('%s/*' %sys.argv[1]))
 else :
-    print(len(glob.glob('*')))
+    length = len(glob.glob('*'))
+
+sys.stdout.write('%d' %length)
+sys.stdout.write('\n')

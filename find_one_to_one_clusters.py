@@ -77,10 +77,8 @@ def run_threads(num_threads, files, num_sp, semicon) :
         thread.join()
     return results
  
-def main(num_sp, nthread, semicon) :
-    files = glob.glob('*.aln')
-    if len(files) == 0 :
-        files = glob.glob('*.fasta')
+def main(num_sp, nthread, ext, semicon) :
+    files = glob.glob('*%s' %ext)
     if len(files) == 0 :
         print('No files found.')
         ext = input('What is the file extension to use? (aln, fasta, fa, pep) :')
@@ -104,7 +102,8 @@ if __name__ == '__main__' :
     parser = ArgumentParser()
     parser.add_argument('num_th', help='Number of threads.', type=int)
     parser.add_argument('num_sp', help='Number of species.', type=int)
+    parser.add_argument('ext', help='Extension (ex: fasta, fa, pep, aln)')
     parser.add_argument('-s', help='Find semiconserved clusters', action='store_true', default=False)
     args = parser.parse_args()
-    main(args.num_sp, args.num_th, args.s)
+    main(args.num_sp, args.num_th, args.ext, args.s)
     print('Done.')
