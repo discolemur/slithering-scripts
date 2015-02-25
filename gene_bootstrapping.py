@@ -110,7 +110,7 @@ def bootstrap(clusters, all_names, count) :
 def main() :
     files = glob.glob("*aln")
     clusters, all_names = build_super_matrix(files)
-    num_replicates = 100
+    num_replicates = 200
     bootstrap(clusters, all_names, num_replicates)
 
 if __name__ == "__main__" :

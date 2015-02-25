@@ -94,6 +94,7 @@ def build_super_matrix(files) :
             print ("Progress: %.2f%%" %(counter * 100.0 / total))
     final_map = compile_clusters(clusters, all_names)
     super_file = 'super.fasta'
+    print ('Writing output to %s' %super_file)
     write_super(final_map, super_file)
     print ('Output is found in %s' %super_file)
 

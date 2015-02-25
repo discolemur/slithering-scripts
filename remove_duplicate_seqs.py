@@ -14,7 +14,7 @@ def parse_header(line) :
     return line
 
 def write_output(seqs, filename) :
-    outfile = open(filename + '_mod', 'w')
+    outfile = open(filename + '.no_duplicates', 'w')
     for seq in seqs :
         outfile.write('%s\n%s\n' %(seqs[seq], seq))
     outfile.close()
