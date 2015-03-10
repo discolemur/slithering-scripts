@@ -20,3 +20,21 @@ def do_progress_update(list, action, *args) :
         action(item, *args)
         counter += 1
     return True
+
+
+## This function performs a simple action on a list using multithreading
+def parallelize(values, action, num_threads) :
+    import threading
+    threads = []
+    div = int(len(files) / num_threads)
+    begin = 0
+    end = div + (len(files) % num_threads)
+    for i in range(num_threads) :
+        counter = begin
+        thread = threading.Thread(target=action, args=(files[begin:end], counter))
+        threads.append(thread)
+        thread.start()
+        begin = end
+        end += div
+    for thread in threads :
+        thread.join()

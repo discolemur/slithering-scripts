@@ -38,7 +38,7 @@ function create_script ()
     echo "/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/runables/run_inparanoid.sh $1 $2" >> $file.sh
 }
 
-array=(*.fasta)
+array=(*.pep)
 
 for (( i=0 ; i < ${#array[@]} ; i++ ))
 do

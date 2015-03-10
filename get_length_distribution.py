@@ -3,25 +3,25 @@
 import glob
 import sys
 
+# We only need to read one sequence, because it is aligned (they are all the same length.)
 def aln_len(file) :
     fh = open(file, 'r')
-    fasta = {}
-    for line in fh :
-        line = line.strip()
+    seq = ''
+    while True :
+        line = fh.readline().strip()
         if line[0] == '>' :
-            header = line
-            fasta[header] = ''
+            if len(seq) != 0 :
+                fh.close()
+                return len(seq)
         else :
-            fasta[header] += line
-    fh.close()
-    return len(fasta[list(fasta.keys())[0]])
+            seq += line
 
 def main(outfile) :
     lengths = []
     for file in glob.glob('*.aln') :
-        lengths.append(str(aln_len(file)))
+        lengths.append( (file, str(aln_len(file))) )
     fh = open(outfile, 'w')
-    fh.write(' '.join(lengths))
+    fh.write('\n'.join([ '%s\t%s' %(file, length) for file, length in lengths ]))
     fh.close()
 
 if __name__ == '__main__' :

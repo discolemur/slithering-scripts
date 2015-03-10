@@ -5,6 +5,8 @@ import os
 import subprocess
 import timeit
 import argparse
+sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
+from helpers import parallelize
 
 # Please only give me files from transdecoder. This means .pep (for proteins) and .cds (for dna).
 
@@ -39,6 +41,7 @@ num_organisms = 0
 multiparanoid = ''
 output_type = ''
 dir_name = ''
+threads = 1
 
 def checkpoint_time() :
     global timing
@@ -109,15 +112,13 @@ class Cluster(object) :
             print ('genes:')
             print (self.genes[key])
 
-    def save(self, out_file, all_names, counter) :
+    def save(self, out_file, counter) :
         if len(self.genes) == 0 :
             print ('ERROR! All sequences were lost in this cluster %d.' %counter)
             out_file.write('ERROR! All sequences were lost in this cluster %d.' %counter)
             print(self.genes)
             return False
-        for organism in all_names :
-            if organism not in self.genes :
-                continue
+        for organism in self.genes :
             for id in self.genes[organism] :
                 header = '>%d|%s|%s' %(counter, organism, id)
                 header = change_header(header)
@@ -216,13 +217,13 @@ def load_clusters(fastas, clusters) :
 
 # this is to silence mafft
 nowhere = open(os.devnull, 'w')
-def write_cluster(cluster, all_names, counter) :
+def write_cluster(cluster, counter) :
     global dir_name
     global nowhere
 #    print ('Writing cluster %d' %counter)
     filename = "%s/tmp_%d_%d" %(dir_name, counter, cluster.get_bin())
     out_file = open(filename, 'w')
-    if not cluster.save(out_file, all_names, counter) :
+    if not cluster.save(out_file, counter) :
         out_file.close()
         os.remove(filename)
         return
@@ -255,7 +256,7 @@ def getNumClusters(clusters) :
     print ('There are %d clusters in total.' %total )
     return total
 
-def writeOutput(clusters, all_names, total) :
+def writeOutput(clusters, total) :
     mkdirs()
     counter = 1
     percent = total / 10
@@ -267,8 +268,25 @@ def writeOutput(clusters, all_names, total) :
         for cluster in clusters[bin] :
             if counter % percent == 0 :
                 print ("Progress: %.2f%%" %(counter * 100.0 / total))
-            write_cluster(cluster, all_names, counter)
+            write_cluster(cluster, counter)
             counter += 1
+
+def write_batch(clusters, counter) :
+    for cluster in clusters :
+        write_cluster(cluster, counter)
+        counter += 1
+
+def writeOutputMultithread(clusters) :
+    global threads
+    all_clusters = []
+    for bin in clusters :
+        all_clusters.extend(clusters[bin])
+        del clusters[bin]
+    mkdirs()
+    total = len(all_clusters)
+    print('There are %d clusters in total.' %total)
+    # Write aligned clusters
+    parallelize(all_clusters, write_batch, threads)
 
 def determineOutputType() :
     global output_type
@@ -301,16 +319,22 @@ def handleArgs() :
     global multiparanoid
     global uses_dna
     global output_type
+    global threads
     parser = argparse.ArgumentParser()
     parser.add_argument('organism_count', help='The number of organisms. Must be greater than 2.', type=int)
     parser.add_argument('--uses_dna', help='Set this if you want to cluster based on dna (.fasta) sequences and not amino acid (.pep) sequences.', action='store_true')
     parser.add_argument('output_type', help='Options are c , s , m, and a for conserved, semiconserved, complete, all clusters (regardless of any abnormalitites) (respectively)')
     parser.add_argument('input', help='Provide a location to solution.disco or a multiparanoid output file.')
+    parser.add_argument('-t', help='Number of threads. If specified, multithreading is enabled.', type=int, default=1)
     args = parser.parse_args()
     multiparanoid = args.input
     uses_dna = args.uses_dna
     output_type = args.output_type
     num_organisms = args.organism_count
+    threads = args.t
+    if threads < 1 :
+        print('Invalid number of threads.')
+        return False
     if not determineOutputType() :
         return False
     if num_organisms < 2 :
@@ -339,7 +363,10 @@ def main() :
     clusters = load_clusters(fastas, clusters)
     # time
     checkpoint_time()
-    writeOutput(clusters, all_names, getNumClusters(clusters))
+    if threads == 1 :
+        writeOutput(clusters, getNumClusters(clusters))
+    else :
+        writeOutputMultithread(clusters)
     # time
     checkpoint_time()
 
