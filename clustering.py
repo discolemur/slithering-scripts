@@ -279,7 +279,8 @@ def write_batch(clusters, counter) :
 def writeOutputMultithread(clusters) :
     global threads
     all_clusters = []
-    for bin in clusters :
+    keys = clusters.keys()
+    for bin in keys :
         all_clusters.extend(clusters[bin])
         del clusters[bin]
     mkdirs()

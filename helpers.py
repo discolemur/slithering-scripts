@@ -26,12 +26,12 @@ def do_progress_update(list, action, *args) :
 def parallelize(values, action, num_threads) :
     import threading
     threads = []
-    div = int(len(files) / num_threads)
+    div = int(len(values) / num_threads)
     begin = 0
-    end = div + (len(files) % num_threads)
+    end = div + (len(values) % num_threads)
     for i in range(num_threads) :
         counter = begin
-        thread = threading.Thread(target=action, args=(files[begin:end], counter))
+        thread = threading.Thread(target=action, args=(values[begin:end], counter))
         threads.append(thread)
         thread.start()
         begin = end
