@@ -6,9 +6,21 @@ import sys
 length = 0
 
 if len(sys.argv) > 1 :
-    length = len(glob.glob('%s/*' %sys.argv[1]))
+    pattern = sys.argv[1]
+    if pattern == '*' :
+        # Print size of directories.
+        contents = glob.glob('*')
+        length = len(contents)
+        sys.stdout.write('.\t%d\n' %length)
+        import os
+        for name in contents :
+            if os.path.isdir(name) :
+                sys.stdout.write('%s\t%d\n'%(name, len(glob.glob('%s/*'%name))))
+    else :
+        length = len(glob.glob('%s/*' %pattern))
+        sys.stdout.write('%d\n' %length)
 else :
     length = len(glob.glob('*'))
+    sys.stdout.write('%d\n' %length)
 
-sys.stdout.write('%d' %length)
-sys.stdout.write('\n')
+

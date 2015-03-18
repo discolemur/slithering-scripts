@@ -166,7 +166,7 @@ def read_multiparanoid() :
         # line goes in current cluster
         # remove the file extension
         organism = line[1].split('.')[0]
-        id = line[2]
+        id = line[2].replace('cds.','')
         cluster.add_gene_id(organism, id)
     in_file.close()
     if 0 in clusters :
@@ -182,7 +182,7 @@ def read_multiparanoid() :
 # comp4103_c0_seq1:108-1082(+)
 
 def get_gene_id(line) :
-    return line[1:].split(' ')[-1].strip()
+    return line[1:].split(' ')[-1].strip().replace('cds.','')
 
 # fastas = {name} -> {id} -> seq
 def read_fastas(all_names) :
@@ -212,6 +212,8 @@ def load_clusters(fastas, clusters) :
         for cluster in clusters[bin] :
             for name in cluster.genes :
                 for id in cluster.genes[name] :
+                    if id not in fastas[name] :
+                        print('%s missing %s' %(name,id))
                     cluster.genes[name][id] = fastas[name][id]
     return clusters
 
@@ -279,7 +281,7 @@ def write_batch(clusters, counter) :
 def writeOutputMultithread(clusters) :
     global threads
     all_clusters = []
-    keys = clusters.keys()
+    keys = list(clusters.keys())
     for bin in keys :
         all_clusters.extend(clusters[bin])
         del clusters[bin]

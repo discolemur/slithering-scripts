@@ -24,6 +24,14 @@ def do_progress_update(list, action, *args) :
 
 ## This function performs a simple action on a list using multithreading
 def parallelize(values, action, num_threads) :
+    '''
+    Values are a list of items to act upon.
+    Action is the function that takes a batch of values.
+    num_threads is obvious.
+
+    Action will accept two arguments: a subset of values, and the value of the first index in the full array.
+    Sometimes I want to know the counter ID for each value. That's why I give that index as an argument.
+    '''
     import threading
     threads = []
     div = int(len(values) / num_threads)
