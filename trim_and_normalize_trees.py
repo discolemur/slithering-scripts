@@ -30,23 +30,32 @@ branch = re.compile(r':[^,)]*([,)])')
 branch_sub = r'\1'
 
 # Remove bootstrap values
-boot = re.compile(r'\)\d+')
+boot = re.compile(r'\)\d+.\d+')
 boot_sub = r')'
 
-def trim_and_normalize_tree(tree) :
-    tree = ODname.sub(ODname_sub, tree)
-    tree = EPname.sub(EPname_sub, tree)
-    tree = branch.sub(branch_sub, tree)
-    tree = boot.sub(boot_sub, tree)
+def trim_and_normalize_tree(tree, choices = None) :
+    if choices is None :
+        tree = ODname.sub(ODname_sub, tree)
+        tree = EPname.sub(EPname_sub, tree)
+        tree = branch.sub(branch_sub, tree)
+        tree = boot.sub(boot_sub, tree)
+    else :
+        if choices['id'] :
+            tree = ODname.sub(ODname_sub, tree)
+            tree = EPname.sub(EPname_sub, tree)
+        if choices['boot'] :
+            tree = boot.sub(boot_sub, tree)
+        if choices['branch'] :
+            tree = branch.sub(branch_sub, tree)
     return tree
 
-def read_trees(filename) :
+def read_trees(filename, choices = None) :
     trees = []
     fh = open(filename, 'r')
     for line in fh :
         line = line.strip()
         if len(line) != 0 :
-            trees.append(trim_and_normalize_tree(line))
+            trees.append(trim_and_normalize_tree(line, choices))
     fh.close()
     return trees
 
@@ -58,12 +67,23 @@ def write_file(trees, treefile) :
     ofh.close()
     shutil.move(tmp, treefile)
 
-def main(treefile) :
-    trees = read_trees(treefile)
+def main(treefile, choices) :
+    trees = read_trees(treefile, choices)
     write_file(trees, treefile)
 
 if __name__ == '__main__' :
     parser = ArgumentParser()
     parser.add_argument('treefile')
+    parser.add_argument('-id', help='Trim ids (default is False)', action='store_true', default=False)
+    parser.add_argument('-branch', help='Trim branch lengths (default is False)', action='store_true', default=False)
+    parser.add_argument('-boot', help='Trim bootstrap values (default is False)', action='store_true', default=False)
+    parser.add_argument('-all', help='Trim everything, leaving only tree topology (default is False)', action='store_true', default=False)
     args = parser.parse_args()
-    main(args.treefile)
+    if not args.id and not args.boot and not args.branch and not args.all :
+        print('Well, this is boring. You gotta tell me what to trim. Options are id, branch, boot, and all.')
+        exit(0)
+    choices = { 'id':args.id, 'boot':args.boot, 'branch':args.branch }
+    if args.all :
+        choices = { 'id':True, 'boot':True, 'branch':True }
+    main(args.treefile, choices)
+
