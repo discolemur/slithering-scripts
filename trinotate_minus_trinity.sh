@@ -28,14 +28,20 @@ blank_sqlite=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/Blank.sqlit
 # If this script runs multiple times, it needs its own directory for its own stuff.
 # The tmp directory is named from the second input parameter
 name=${2##*/}_tmp
-mkdir $name
-cp $1 $name/Trinity.fasta
+if [ ! -d $name ]
+then
+	mkdir $name
+fi
+if [ ! -e $name/Trinity.fasta ]
+then
+	cp $1 $name/Trinity.fasta
+fi
 cd $name
 
 # Pridict peptides
 # Annotate transcriptomes
 
-#      STEP 1 : run Trinity
+echo 'STEP 1 : run Trinity'
 			# ASSUMED COMPLETED ALREADY
 
 # Step 1.1 : run trinity to obtain fasta files
@@ -49,7 +55,7 @@ then
 	$TransDecoder -t $fasta_file
 fi
 
-#      STEP 2 : run Blast
+echo 'STEP 2 : run Blast'
 
 # Step 2.1 : prepare SwissProt database for blast
 #    download the uniprot database from http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/uniprot_sprot.fasta.gz/download
@@ -73,30 +79,29 @@ then
 	$blastp -query Trinity.fasta.transdecoder.pep -db $uniprot_sprot -num_threads 16 -max_target_seqs 1 -outfmt 6 > blastp_Trinity.outfmt6
 fi
 
-#       STEP 3 : run HMMER for protein domain identification
+echo 'STEP 3 : run HMMER for protein domain identification'
 
-# Step 3.1 : download and prepare Pfam-A.hmm
+echo 'Step 3.1 : download and prepare Pfam-A.hmm'
 # Download the file from http://sourceforge.net/projects/trinotate/files/TRINOTATE_RESOURCES/Pfam-A.hmm.gz/download
 # prepare for use with hmmscan
 # $hmmpress Pfam-A.hmm
+echo 'NOTE: the pipeline does not change the Pfam-A.hmm file, so we may reuse the same file each time.'
+echo 'I already prepared that file, so just use use the one I have.'
+echo 'See $pfam_file'
 
-# NOTE: the pipeline does not change the Pfam-A.hmm file, so we may reuse the same file each time.
-# I already prepared that file, so just use use the one I have.
-# See $pfam_file
-
-# Step 3.2 : run HMMER with Pfam-A.hmm and pep file
+echo 'Step 3.2 : run HMMER with Pfam-A.hmm and pep file'
 if [ ! -e TrinityPFAM.out ]
 then
 	$hmmscan --cpu 16 --domtblout TrinityPFAM.out $pfam_file Trinity.fasta.transdecoder.pep > TrinityPFAM.log
 fi
 
-# Step 4 : run signalP to predict signal peptides
+echo 'Step 4 : run signalP to predict signal peptides'
 if [ ! -e Trinity_signalp.out ]
 then
 	$signalp -t euk -f long -n Trinity_signalp.out Trinity.fasta.transdecoder.pep
 fi
 
-# Step 5 : run tmHMM to predict transmembrane regions
+echo 'Step 5 : run tmHMM to predict transmembrane regions'
 if [ ! -e TrinityTMHMM.out ]
 then
 	$tmhmm --short < Trinity.fasta.transdecoder.pep > TrinityTMHMM.out
@@ -113,40 +118,41 @@ fi
 
 # I already downloaded a prepared database from the website, so copy my blank database into the working location, renaming it to Trinotate.sqlite
 
+echo 'Step 6 : database production'
 cp $blank_sqlite Trinotate.sqlite
 
 # Be sure you download the correct version of the database.
 # "The boilerplate Trinotate.sqlite database downloaded above is specific to each software release. The link above will retrieve the sqlite database that is compatible with this current software version (Nov 10, 2013)."
 
-# Get gene/transcript relationships map (this will be put into the database)
+echo 'Get gene/transcript relationships map (this will be put into the database)'
 $get_Trinity_gene_to_trans_map $fasta_file > Trinity.fasta.gene_trans_map
 
-# Initialize the database with transcript, protein, and gene/transcrip map files
+echo 'Initialize the database with transcript, protein, and gene/transcrip map files'
 $Trinotate Trinotate.sqlite init --gene_trans_map Trinity.fasta.gene_trans_map --transcript_fasta $fasta_file --transdecoder_pep Trinity.fasta.transdecoder.pep
 
-# Add protein hits into the database
+echo 'Add protein hits into the database'
 $Trinotate Trinotate.sqlite LOAD_blastp blastp_Trinity.outfmt6 
 
-# Add sequence hits
+echo 'Add sequence hits'
 $Trinotate Trinotate.sqlite LOAD_blastx blastx_Trinity.outfmt6
 
-# Add PFAM output
+echo 'Add PFAM output'
 $Trinotate Trinotate.sqlite LOAD_pfam TrinityPFAM.out 
 
-# Add signalp output
+echo 'Add signalp output'
 $Trinotate Trinotate.sqlite LOAD_signalp Trinity_signalp.out
 
-# Add tmhmm output
+echo 'Add tmhmm output'
 $Trinotate Trinotate.sqlite LOAD_tmhmm TrinityTMHMM.out
 
-# --------------------------------Obtaining output from the database------------------------ #
+echo '--------------------------------Obtaining output from the database------------------------'
 
 $Trinotate Trinotate.sqlite report > Trinity_report.xls
 
-# Convert output to gff format using a simple script
+echo 'Convert output to gff format using a simple script'
 
 $xlsToGff Trinity_report.xls $2
 
 $gffToFasta $2 $fasta_file $2_extracted.fasta
 
-# Congratulations, you now have a file with annotated peptides from your transcriptome.
+echo 'Congratulations, you now have a file with annotated peptides from your transcriptome.'
