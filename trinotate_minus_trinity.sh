@@ -13,7 +13,7 @@ blastp=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/blast/bin/blastp
 hmmpress=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/hmmer-3.1b1-linux-intel-x86_64/binaries/hmmpress
 hmmscan=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/hmmer-3.1b1-linux-intel-x86_64/binaries/hmmscan
 get_Trinity_gene_to_trans_map=/fslgroup/fslg_BybeeLab/software/trinityrnaseq_r20131110/util/get_Trinity_gene_to_trans_map.pl
-special_map_script=/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/get_Trinity_gene_to_trans_map_MODIFIED_FOR_SPECIAL_CASES.pl
+special_map_script=/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/get_Trinity_gene_to_trans_map_MODIFIED_FOR_SPECIAL_CASES.py
 Trinotate=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/Trinotate_r20131110/Trinotate
 xlsToGff=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/xlsToGff.py
 signalp=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/signalp-4.1/signalp
@@ -127,16 +127,21 @@ cp $blank_sqlite Trinotate.sqlite
 
 echo 'Get gene/transcript relationships map (this will be put into the database)'
 $get_Trinity_gene_to_trans_map $fasta_file > Trinity.fasta.gene_trans_map
-NUMOFLINES=$(wc -l < "Trinity.fasta.gene_trans_map")
+NUMOFLINES=$(wc -l Trinity.fasta.gene_trans_map | awk '{print $1}')
+echo "$NUMOFLINES gene_to_trans_map lines. Is this ok?"
 if [ "$NUMOFLINES" -lt "50" ]
 then
-	$special_map_script $fasta_file > Trinity.fasta.gene_trans_map
+	echo 'We will try with the other map script.'
+	$special_map_script $fasta_file Trinity.fasta.gene_trans_map
 fi
+NUMOFLINES=$(wc -l Trinity.fasta.gene_trans_map | awk '{print $1}')
 if [ "$NUMOFLINES" -lt "50" ]
 then
-    echo 'There\'s been a big error while trying to get a good gene to trans map.'
-	exit
+	echo "$NUMOFLINES gene_to_trans_map lines. This is not ok."
+    echo 'There has been a big error while trying to get a good gene to trans map.'
+    exit
 fi
+echo 'And now we move on.'
 
 echo 'Initialize the database with transcript, protein, and gene/transcrip map files'
 $Trinotate Trinotate.sqlite init --gene_trans_map Trinity.fasta.gene_trans_map --transcript_fasta $fasta_file --transdecoder_pep Trinity.fasta.transdecoder.pep
