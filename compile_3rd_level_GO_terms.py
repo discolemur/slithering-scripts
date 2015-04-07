@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import argparse
 import glob
 import re
 
@@ -39,8 +40,9 @@ def get_go_terms(file, go_dict) :
             continue
         combo_name = get_combo_name_gff(taxon, line)
         # < FOR TESTING 
-        go_dict[combo_name] = get_third_level_GO_term(line)
+#        print(combo_name)
         # FOR TESTING >
+        go_dict[combo_name] = get_third_level_GO_term(line)
     fh.close()
     return go_dict
 
@@ -94,15 +96,9 @@ def write_GOs(ofh, clusterfile, taxa, go_dict) :
         else :
             ofh.write('\t%s' %go_dict[id])
 
-def main() :
-    go_dict = {}
-    gff_files = glob.glob('/fslgroup/fslg_BybeeLab/compute/all_illumina_trinity_transcriptomes/inparanoid_computations/gff_files/*.gff')
-    taxa = []
-    for file in gff_files :
-        taxa.append(get_taxon_name(file))
-        go_dict = get_go_terms(file, go_dict)
+def write_terms_for_clusters(taxa, go_dict) :
     cluster_files = glob.glob('*.aln')
-    ofh = open('COMPILED_GO_TERMS.txt', 'w')
+    ofh = open('GO_terms_for_clusters.txt', 'w')
     ofh.write('Clusters\t%s\n' %'\t'.join(taxa))
     for file in cluster_files :
         ofh.write(file)
@@ -110,6 +106,34 @@ def main() :
         ofh.write('\n')
     ofh.close()
 
+def write_terms_for_taxa(go_dict) :
+    ofh = open('GO_terms_for_taxa.txt', 'w')
+    ofh.write('Taxa\tGeneID\tGOterm\n')
+    for combo_name in go_dict :
+        id = combo_name.split('assembly_')[1]
+        taxa = combo_name.split(id)[0][:-1]
+        ofh.write('%s\t%s\t%s\n' %(taxa, id, go_dict[combo_name]))
+    ofh.close()
+
+def main(for_taxa, for_clusters) :
+    go_dict = {}
+    gff_files = glob.glob('/fslgroup/fslg_BybeeLab/compute/all_illumina_trinity_transcriptomes/gff_files/*.gff')
+    taxa = []
+    for file in gff_files :
+        taxa.append(get_taxon_name(file))
+        go_dict = get_go_terms(file, go_dict)
+    if for_taxa :
+        write_terms_for_taxa(go_dict)
+    if for_clusters :
+        write_terms_for_clusters(taxa, go_dict)
+
 if __name__=='__main__' :
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', help='Get 3rd level GO terms for clusters', action='store_true', default=False)
+    parser.add_argument('-t', help='Get 3rd level GO terms for taxa', action='store_true', default=False)
+    args = parser.parse_args()
+    if not args.c and not args.t :
+        print('You need to specify a combination of -c and -t (for clusters and taxa, respectively).')
+    else :
+        main(args.t, args.c)
 

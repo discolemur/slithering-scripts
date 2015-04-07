@@ -30,7 +30,7 @@ def handle_file(batch) :
     if queue_has_room() :
         subprocess.call(['sbatch',batch])
     else :
-        subprocess.call('./%s' %batch, shell=True)
+        subprocess.call('bash %s' %batch, shell=True)
     if os.path.isfile(list) :
         os.remove(batch)
 

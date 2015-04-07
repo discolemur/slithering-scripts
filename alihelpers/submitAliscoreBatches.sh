@@ -15,7 +15,7 @@ function use_dir() {
 			if [ $(($counter % 1000)) == 0 ]
 			then
 				sleep 3m
-				cleanClusterBatchDir.sh $dir
+				clean_aliscore_dir.py $dir
 			fi
 			sbatch $batch
 			((counter++))

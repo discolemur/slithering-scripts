@@ -217,14 +217,15 @@ def main(infile) :
     global seqtype
     if infile != '' :
         length, scores, percent_variation, mean_dist = handle_file(infile)
-        report_all(infile, length, percent_variation, mean_dist, scores)
+        if length > 300 and percent_variation < 32 :
+            report_all(infile, length, percent_variation, mean_dist, scores)
         return 0
     files = glob.glob('*.aln')
     for file in files :
         length, scores, percent_variation, mean_dist = handle_file(file)
-        if seqtype == 'pep' and length > 100 and length < 400 and percent_variation < 10 :
+        if seqtype == 'pep' and length > 100 and percent_variation < 10 :
             report_all(file, length, percent_variation, mean_dist, scores)
-        elif seqtype == 'nuc' and length > 300 and length < 1200 and percent_variation < 30 :
+        elif seqtype == 'nuc' and length > 300 and percent_variation < 30 :
             report_all(file, length, percent_variation, mean_dist, scores)
 
 

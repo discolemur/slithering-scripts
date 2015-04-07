@@ -14,6 +14,7 @@ def main(args) :
         usage(args[0])
     fasta_in = open(args[1], 'r')
     fasta_out = open(args[2], 'w')
+    line = ''
     for line in fasta_in :
         line = line.strip()
         if line[0] == '>' :

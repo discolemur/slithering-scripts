@@ -18,7 +18,7 @@ def read_fasta(infile) :
                 fasta_map[header] = []
             fasta_map[header].append('')
         else :
-            fasta_map[header][-1] += line
+            fasta_map[header][-1] += line.upper()
     fh.close()
     return fasta_map
 
