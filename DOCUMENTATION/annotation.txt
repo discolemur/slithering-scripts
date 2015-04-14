@@ -1,0 +1,23 @@
+Annotation
+
+-----scripts------
+
+REQUIRED:
+trinotate_minus_trinity.sh
+    usage: trinotate_minus_trinity.sh input.fasta output.gff
+    output: Trinotate output will be in a new directory called '$file.gff_tmp' where $file is the input file.
+
+OPTIONAL:
+produceTrinotateScripts.sh
+    output: slurm scripts (to run trinotate_minus_trinity.sh) for each *.fasta file in the current directory.
+
+-----tasks------
+
+1) Run trinity (assumed beforehand)
+
+2) trinotate_minus_trinity.sh input.fasta output.gff
+
+
+Note: trinotate_minus_trinity.sh will not overwrite files that already exist.
+That means that you may need to delete incomplete files if the job fails. The
+good news is that it will start where it left off, saving your time.

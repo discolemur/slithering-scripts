@@ -99,10 +99,13 @@ def build_super_matrix(files) :
     print ('Output is found in %s' %super_file)
 
 # args[1] is the number of organisms
-def main() :
-    files = glob.glob("*aln")
+def main(extension) :
+    files = glob.glob("*%s" %extension)
     build_super_matrix(files)
 
 if __name__ == "__main__" :
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('extension', help='Extension for cluster files. Common file extensions include fasta, fas, fa, pep, aln, and aa.')
+    args = parser.parse_args()
+    main(args.extension)
 

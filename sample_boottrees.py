@@ -6,8 +6,9 @@ import random
 import numpy
 import re
 
+import sys
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
-from trim_and_normalize_tree import read_trees
+from trim_and_normalize_trees import read_trees
 
 '''
 Example pre-processed tree:

@@ -84,7 +84,7 @@ def handle_files(files, homology, lines, begin) :
     i = begin
     for alifile in files :
         seqfile = alifile.split('_List')[0]
-        name = '%s' %(seqfile.split('.')[0].split('/')[-1])
+        name = '%s' %(seqfile.split('/')[-1].split('.')[0])
         output_list = [name]
         aliscore = get_aliscore(alifile)
         output_list.append(str(aliscore))
@@ -125,9 +125,9 @@ def main(dir, homology, output, num_threads) :
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', help='Number of threads.', type=int, default=1)
-    parser.add_argument('dir', help='Directory containing aligned clusters with their *List* aliscore files.')
+    parser.add_argument('-d', help='Directory containing aligned clusters with their *List* aliscore files.', default='.')
     parser.add_argument('homology', help='H = homologous, NH = non homologous, ? = unknown homology status')
     parser.add_argument('output', help='Output filename. Output will be a table of stuff, so probably you should use a .txt extention.')
     args = parser.parse_args()
-    main(args.dir, args.homology, args.output, args.t)
+    main(args.d, args.homology, args.output, args.t)
 

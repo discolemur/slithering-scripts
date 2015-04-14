@@ -1,0 +1,22 @@
+Ortholog Clusters
+
+-----scripts------
+
+REQUIRED:
+
+clustering.py
+    usage: clustering.py [-h] [--uses_dna] [-t T] organism_count output_type input
+       Use the -h flag to be acquainted with how it works.
+       The -t flag is to indicate how many processors to allocate.
+    output: Aligned ortholog clusters with .aln extension in a new directory based on your arguments.
+
+-----tasks------
+
+1) Obtain multiparanoid output file (could be a solution.disco if you used my special multiparanoid solution)
+    This is a tab-delimited file with three columns : clusterID   organism    gene
+    I will refer to this as the disco file.
+
+2) Be inside directory with organism.cds.fasta or organism.pep (from transdecoder output files) for each organism in disco file.
+
+3) clustering.py [-h] [--uses_dna] [-t T] organism_count output_type disco_input
+

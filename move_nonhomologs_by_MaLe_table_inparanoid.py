@@ -71,7 +71,11 @@ def main(infile, in_dir) :
             H.add('%s' %row[-1][1:-1])
     files = glob.glob('%s/*.aln' %in_dir)
     for file in files :
-        name = file.split('/')[-1].split('ALICUT_')[1].split('.aln')[0]
+        name = ''
+        if 'ALICUT_' in name :
+            name = file.split('/')[-1].split('ALICUT_')[1].split('.aln')[0]
+        else :
+            name = file.split('/')[-1].split('.aln')[0]
         #name = file.split('/')[-1].split('.aln')[0]
         if name in NH :
             move_cluster(file, in_dir, out_dir)

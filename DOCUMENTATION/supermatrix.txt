@@ -1,0 +1,30 @@
+Supermatrix Construction
+
+-----scripts------
+
+REQUIRED:
+
+construct_supermatrix.py
+    usage: construct_supermatrix.py [-h] extension
+    output: super.fasta (supermatrix)
+
+OPTIONAL:
+
+align_all.sh
+    output : in new directory "aln_files" with all *.fa* files mafft-aligned and renamed with .aln extension
+
+-----tasks------
+
+1) Be inside a directory with ALIGNED ortholog cluster files. I often use the extension .aln to indicate alignment files.
+
+    Cluster files : must be in fasta format, aligned, and sequences can be either peptide or dna.
+
+    HEADER REQUIREMENT
+
+    This is the regex format of headers that are acceptable, where .*_assembly is the actual taxa.
+    >[^_]*_.*_assembly_.*
+
+    TO CHANGE HEADER REQUIREMENT : change the function get_taxa(line)
+
+2) construct_supermatrix.py [-h] .aln
+   Output will be called super.fasta

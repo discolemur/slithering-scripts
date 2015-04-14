@@ -5,6 +5,12 @@
 #     $1 = location/input.fasta
 #     $2 = location/output.gff
 
+if [ $# -ne 2 ]
+then
+        echo "Usage: $0 input.fasta output.gff"
+        exit
+fi
+
 # Program locations:
 TransDecoder=/fslgroup/fslg_BybeeLab/software/trinityrnaseq_r20131110/trinity-plugins/TransDecoder_r20131110/TransDecoder
 makeblastdb=/fslgroup/fslg_BybeeLab/software/trinotate_dependencies/blast/bin/makeblastdb

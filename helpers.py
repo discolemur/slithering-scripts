@@ -33,6 +33,8 @@ def parallelize(values, action, num_threads) :
     Sometimes I want to know the counter ID for each value. That's why I give that index as an argument.
     '''
     import threading
+    if num_threads > len(values) :
+        num_threads = len(values)
     threads = []
     div = int(len(values) / num_threads)
     begin = 0
