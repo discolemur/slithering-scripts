@@ -11,15 +11,22 @@ def read_fasta(infile) :
     fasta_map = {}
     header = ''
     fh = open(infile, 'r')
+    line_counter = 0
+    seq_counter = 0
     for line in fh :
         line = line.strip()
+        line_counter += 1
         if line[0] == '>' :
+            seq_counter += 1
             header = line
             if header not in fasta_map :
                 fasta_map[header] = ''
         else :
             fasta_map[header] += line.upper()
     fh.close()
+    if line_counter > 0 and seq_counter == 0 :
+        print('I think this isn\'t in fasta format. I\'m giving up.')
+        exit(1)
     return fasta_map
 
 def check_file(batch) :
@@ -41,6 +48,7 @@ def check_file(batch) :
     
 
 if __name__ == '__main__' :
+    print('All files with *Batch.sh will be checked for identical sequences.')
     files = glob.glob('*Batch.sh')
     for file in files :
         check_file(file)

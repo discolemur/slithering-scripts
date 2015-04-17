@@ -20,3 +20,10 @@ clustering.py
 
 3) clustering.py [-h] [--uses_dna] [-t T] organism_count output_type disco_input
 
+4) Find output in the new directory (clustering.py should tell you where to look).
+    Output clusters will have extension .aln because it is an alignment file.
+    One of the programs we used (maybe hamstr?) used a .aln extension for its
+    alignments, and I sort of adopted that nomenclature. You are free to change
+    this, but know that it is an important part of my other scripts, so you would
+    have to change those as well (to search for .fasta instead of .aln for instance.)
+

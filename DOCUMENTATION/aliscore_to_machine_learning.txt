@@ -1,0 +1,77 @@
+Aliscore to Machine Learning
+
+-----Preliminary Step------
+obtaining_ortholog_clusters.txt
+
+-----scripts------
+
+REQUIRED:
+
+run_aliscore.sh
+    usage: run_aliscore.sh
+    output: Copies aliscore scripts into the directory
+            (Yeah, aliscore is dumb and needs to be in the same directory as the cluster file.)
+            Runs aliscore script on the cluster.
+
+produceAliscoreScripts.sh
+    output: For all *.aln files, a new file *.aln.sh exists which is a slurm batch script. (use sbatch to submit it as a job to marylou)
+
+submitAliscoreBatches.py
+    usage: submitAliscoreBatches.py [-h] [-d directory] [-t threads]
+    output: Has no output, simply submits batch files.
+
+pseudo_ali_for_identical_sequences.py
+    usage: pseudo_ali_for_identical_sequences.py
+    output: Adds *_List_random.txt files for fasta with all identical sequences.
+            Also removes fasta files that are completely empty.
+
+compile_attr_table_for_ma_learning.py
+    usage: compile_attr_table_for_ma_learning.py [-h] [-t threads] [-d directory] homology output
+    output: user defined. See usage above.
+            Produces the attribute table for machine learning.
+
+
+OPTIONAL:
+
+align_all.sh
+    output : in new directory "aln_files" with all *.fa* files mafft-aligned
+and renamed with .aln extension
+
+prep_clusters_for_aliscore.py
+    usage: prep_clusters_for_aliscore.py [-h] [-t threads]
+    output: overwrites cluster file where sequence has no X characters, and
+            header replaces these )(!: with underscore _
+
+-----tasks------
+
+1) Be inside a directory with ALIGNED ortholog cluster files.
+   I use the extension .aln to indicate alignment files.
+   Cluster files : must be in fasta format, aligned, and sequences can be either peptide or dna. Extension: .aln
+                   must not contain these symbols in the header (stupid aliscore) ! : ) (
+                   must not contain X in the sequences (stupid aliscore)
+
+      Optional: align_all.sh , prep_clusters_for_aliscore.py
+
+2) Run aliscore for all clusters. In the end, there must be a *_List_random.txt file for the cluster.
+
+ 2a) If you only have a few files (under 50) then you can use this :
+
+       run_aliscore.sh
+
+ 2b) If you have more than 50 files, then produce slurm submission scripts for each .aln file :
+
+       produceAliscoreScripts.sh
+
+ 2c) Submit the aliscore scripts using my "babysitting" script, which supports multithreading and runs stuff locally if the submitted jobs are mostly all pending.
+       submitAliscoreBatches.py
+
+ 2c) If all sequences are identical in the cluster, there must be an empty *_List_random.txt file.
+    Aliscore is dumb and does not make one, so you must use my script :
+
+       pseudo_ali_for_identical_sequences.py
+
+3) Compile machine learning attribute table.
+
+       compile_attr_table_for_ma_learning.py
+
+

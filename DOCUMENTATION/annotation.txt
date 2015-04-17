@@ -17,7 +17,9 @@ produceTrinotateScripts.sh
 
 2) trinotate_minus_trinity.sh input.fasta output.gff
 
+3) Find output in output.gff_tmp directory. (Yeah, it's a stupid naming system. I was a beginner when I did that. You can change it.)
 
-Note: trinotate_minus_trinity.sh will not overwrite files that already exist.
-That means that you may need to delete incomplete files if the job fails. The
-good news is that it will start where it left off, saving your time.
+NOTE:
+trinotate_minus_trinity.sh will not overwrite files that already exist.
+    That means that you may need to delete incomplete files if the job fails. The
+    good news is that it will start where it left off, saving your time.

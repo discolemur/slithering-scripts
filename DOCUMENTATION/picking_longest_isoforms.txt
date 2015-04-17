@@ -1,0 +1,42 @@
+Picking Longest Isoforms
+
+-----scripts------
+
+REQUIRED:
+
+pick_longest_isoforms.py
+    usage: pick_longest_isoforms.py [-h] [-f list_file] [-e extension]
+    Use the -h flag to learn how to use it.
+
+    Acts on any fasta format files (removes the alignment, if it is aligned.)
+    Does not modify original file.
+    Output: all files selected will have a twin with a different extension: .no_iso.fasta
+
+OPTIONAL:
+
+align_all.sh
+    Often the next step is to align the files that have been trimmed.
+    output : in new directory "aln_files" with all *.fa* files mafft-aligned
+and renamed with .aln extension
+
+-----tasks------
+
+1) pick_longest_isoforms.py
+    Use the -h flag to learn how to use it.
+
+    Cluster files : must be in fasta format, aligned, and sequences can be
+either peptide or dna.
+
+    HEADER REQUIREMENT :
+        Be in this format: >[^_]*_.*_assembly_[^_]*_[^_]*_.*
+                                 TAXON         GENE        ISOFORM
+        Examples :
+        >0_dyak100_1.fastq.dyak100_2.fastq-out_c6216_g1_i2_m.7442
+            taxon = dyak100    ,   gene = c6216_g1
+        >10001_OD25_Stylurus_spiniceps_A15_assembly_comp31414_c0_seq1_2-325_-_
+            taxon = OD25_Stylurus_spiniceps_A15_assembly    ,   gene = comp31414_c0
+
+    TO CHANGE HEADER REQUIREMENT : change the functions get_species(header) and get_gene(header)
+        to properly differentiate between species ids and gene ids, ignoring isoform ids.
+
+2) Look for *.no_iso.fasta files (these are the output.)

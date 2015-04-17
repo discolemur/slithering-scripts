@@ -10,6 +10,11 @@ def get_species(header) :
         return header.split('_')[1]
 
 def get_gene(header) :
+    '''
+    This is the most important function in this script.
+    Here is where we parse the gene id from the header.
+    It is important to get the gene id and not the isoform id.
+    '''
     if 'assembly' in header :
         return '_'.join(header.split('assembly_')[-1].split('_')[:2])
     else :
@@ -49,14 +54,16 @@ def read_fasta(infile) :
     fh.close()
     return fasta_map
 
-def main(infile) :
+def main(infile, ext) :
     files = []
     if infile == '.' :
-        files = glob.glob('*.aln')
+        files = glob.glob('*%s' %ext)
     else :
         ifh = open(infile, 'r')
         files = [ line.strip() for line in ifh if len(line.strip()) != 0 ]
         ifh.close()
+    if len(files) == 0 :
+        print('Found no fasta files to read.')
     for infasta in files :
         fasta = read_fasta(infasta)
         ofh = open('%s.no_iso.fasta' %infasta.replace('.aln',''), 'w')
@@ -74,6 +81,13 @@ def main(infile) :
 if __name__ == '__main__' :
     parser = ArgumentParser()
     parser.add_argument('-f', help='File with list of cluster files, where each file is on a different line.', default='.')
+    parser.add_argument('-e', help='Extension to use to locate fasta files (-f overrides this).', default='aln')
     args = parser.parse_args()
-    main(args.f)
+    print('\nThis program selects the largest isoform for each gene.')
+    print('Change the get_gene function if you discover that it is not successfully keeping one copy per gene.')
+    print('This script does not modify the original file.')
+    print('By default, this program finds all *.aln files in the directory, then makes a *.no_iso.fasta file.')
+    print('The -f argument allows you to use a file (containing a list of fasta files) to modify.')
+    print('The -e argument defines the file extension for this program to read (ex: fasta, fa, aln)\n')
+    main(args.f, args.e)
     print('Done.')

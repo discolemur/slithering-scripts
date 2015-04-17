@@ -1,5 +1,8 @@
 Supermatrix Construction
 
+-----Preliminary Step------
+obtaining_ortholog_clusters.txt
+
 -----scripts------
 
 REQUIRED:

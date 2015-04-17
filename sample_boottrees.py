@@ -8,7 +8,7 @@ import re
 
 import sys
 sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
-from trim_and_normalize_trees import read_trees
+from trim_newick_trees import read_trees
 
 '''
 Example pre-processed tree:
@@ -42,7 +42,7 @@ def write_file(trees, ssize, counter) :
 def main(ssize, iterations) :
     trees = []
     for filename in glob.glob('*.boottrees') :
-        trees = read_trees(filename)
+        trees.extend(read_trees(filename))
 
     print('Found %d trees!' %len(trees))
     for i in range(1, iterations+1) :
