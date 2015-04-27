@@ -15,9 +15,11 @@ produceTrinotateScripts.sh
 
 1) Run trinity (assumed beforehand)
 
-2) trinotate_minus_trinity.sh input.fasta output.gff
+2) Run trinotate shell script
 
-3) Find output in output.gff_tmp directory. (Yeah, it's a stupid naming system. I was a beginner when I did that. You can change it.)
+    trinotate_minus_trinity.sh input.fasta output.gff
+
+3) Find output in output.gff_tmp directory. (Yeah, it's a stupid naming system. I was a beginner when I did that. You can change it in the shell script.)
 
 NOTE:
 trinotate_minus_trinity.sh will not overwrite files that already exist.

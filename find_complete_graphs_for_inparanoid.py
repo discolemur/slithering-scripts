@@ -2,7 +2,16 @@
 
 import argparse
 
+# This script is used when some inparanoid runs failed and others succeeded, and you want to know which organisms you can use to do multiparanoid.
+# So, if you have organisms A, B, C, D, E, F and G and suppose the comparisons D-E failed and F-G failed, then you can run ABCDF or ABCDG or ABCFE or ABCGE
+# This was used when we were working with crazy plant transcriptomes.
+
 def read_file(infile) :
+    # Input should be in this format, where each line represents a successful inparanoid run :
+    #
+    # sp1-sp2
+    # sp1-sp3
+    # sp2-sp3
     pairs = {}
     fh = open(infile, 'r')
     for line in fh :

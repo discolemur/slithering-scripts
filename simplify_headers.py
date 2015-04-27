@@ -2,6 +2,9 @@
 
 import sys
 
+# Change headers to numbers (making it REALLY simple)
+# Creates map file so you can go from number to original header.
+
 def main(infile) :
     mapfile = '%s_map.txt' %infile.split('.')[0]
     outfile = '%s_mod.fasta' %infile.split('.')[0]

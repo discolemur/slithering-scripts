@@ -2,6 +2,8 @@
 
 import sys
 
+# Reports the percent of amino acids in a peptide fasta file
+
 # Commandline arg is input peptide file.
 peps = list('ACDEFGHIKLMNPQRSTVWY')
 

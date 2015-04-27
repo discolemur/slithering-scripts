@@ -4,6 +4,11 @@ import sys
 import shutil
 import glob
 
+# Changes headers to be the last item in the header (split by space)
+# > This is the big long header stuff.
+# Would become
+# >stuff.
+
 def parse_header(line) :
     if len(line.split(' ')) == 1 :
         return line[1:]

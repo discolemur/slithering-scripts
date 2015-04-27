@@ -2,7 +2,6 @@
 
 # This script  removes dangling '*' from the sequences
 
-
 import sys
 
 def usage(filename) :

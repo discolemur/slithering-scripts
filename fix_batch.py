@@ -3,6 +3,9 @@
 import glob
 import shutil
 
+# Just a handy way of fixing the sbatch requirements in submission scripts.
+# You are free to tweak this according to your needs.
+
 def fix_batch(file) :
     tmp = '%s.tmp' %file
     ifh = open(file, 'r')

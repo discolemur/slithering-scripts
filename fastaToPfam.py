@@ -3,6 +3,8 @@
 import sys
 from Bio import AlignIO
 
+# Convert fasta to Stockholm (pfam) format
+
 def main(args) :
     if (len(args) != 3) :
         print("Gimme an input and output file next time.\n")

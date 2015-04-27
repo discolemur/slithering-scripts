@@ -3,6 +3,8 @@
 import glob
 import sys
 
+# Report a distribution for the lengths of alignments
+
 # We only need to read one sequence, because it is aligned (they are all the same length.)
 def aln_len(file) :
     fh = open(file, 'r')

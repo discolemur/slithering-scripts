@@ -8,6 +8,10 @@ import argparse
 
 __author__='njensen6'
 
+
+# Moves non_homologs to their own folder, as identified in the machine learning output.
+
+
 ''' INPUT FORMAT
 -bash-4.1$ less hamstr_MaLe_log_reg_output.txt 
 

@@ -2,6 +2,8 @@
 
 import sys
 
+# Simply reports if the fasta headers are sorted alphabetically.
+
 def is_fasta_sorted(filename) :
     in_file = open(filename, 'r')
     header = ''

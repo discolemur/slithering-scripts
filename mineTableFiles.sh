@@ -1,7 +1,7 @@
 #! /bin/bash
 
-mkdir ~/mined_tables
-location=~/mined_tables/
+mkdir mined_tables
+location=mined_tables/
 echo "Find mined files in: $location"
 
 function is_valid ()

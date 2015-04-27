@@ -5,6 +5,9 @@ import shutil
 import sys
 from Bio import SeqIO
 
+# Converts fasta to Phylip, and prepares phylip to work with paml package (there are some stupid requirements)
+
+
 # This make yn00 work.
 # Because the phylip file is in Interleaved format, add 'I' to the first line.
 # The number format for the phylip header is #taxa #bp

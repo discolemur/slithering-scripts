@@ -6,6 +6,8 @@ sys.path.insert(0, '/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts')
 from helpers import do_progress_update
 import argparse
 
+# Removes duplicate sequences from fasta file.
+
 # Only use this if you need to use transdecoder output, and want it simplified.
 # Example header from transdecoder:
 # >cds.comp10002_c0_seq1|m.12725 comp10002_c0_seq1|g.12725  ORF comp10002_c0_seq1|g.12725 comp10002_c0_seq1|m.12725 type:5prime_partial len:406 (+) comp10002_c0_seq1:3-1220(+)

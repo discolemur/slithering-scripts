@@ -8,6 +8,7 @@ import glob
 import subprocess
 import os
 
+# A handy way of running get_columns_from_supermatrix a bagillion times and getting iqtrees from them as slurm batches.
 
 def write_batch(file) :
     batch = '%s.sh' %file

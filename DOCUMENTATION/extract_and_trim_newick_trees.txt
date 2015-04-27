@@ -18,7 +18,7 @@ trim_newick_trees.py
 
 1a) If using sample_boottrees.py , be inside the same directory as the *.boottrees files
 
-2a) Run sample_boottrees.p
+2a) Run sample_boottrees.py
 
 1b) If using trim_newick_trees.py as a standalone, you just need to specify the correct options and tree file.
 

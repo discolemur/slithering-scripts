@@ -3,6 +3,8 @@
 import sys
 import re
 
+# Parses yn00 matrix into a handy table.
+
 def parse_and_write(infilename, outfilename) :
     infile = open(infilename, 'r')
     outfile = open(outfilename, 'w')

@@ -4,6 +4,10 @@ import threading
 from argparse import ArgumentParser
 import glob
 
+# Run this inside a directory with clusters.
+# It will find one-to-one (or semiconserved with the -s option) clusters
+# And report its findings in find_clusters.log
+
 def get_sp(line) :
     line = line.split('_assembly')[0]
     if '|' in line :

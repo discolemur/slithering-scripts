@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+# Basic renaming script. Not super profound. Can be modified to suit many needs.
+
 import os
 import glob
 

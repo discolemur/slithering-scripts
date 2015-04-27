@@ -1,5 +1,10 @@
 #! /usr/bin/env python
 
+# This script contains functions that are intended to help you do cool things in simple ways.
+# Just include this file in the python path, and you're good to go.
+# Import the functions and use them as your heart desires.
+
+
 ## This function performs an action on a list of things and prints the progress as it goes.
 # Arguments:
 # list === a bunch of items

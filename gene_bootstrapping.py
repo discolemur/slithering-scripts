@@ -4,6 +4,8 @@ import glob
 import argparse
 import random
 
+# Writes bootstrap-supermatrices according to random draws of genes.
+
 # Assume all cluster files are in the directory
 # Assume all cluster files begin with the name "cluster"
 # Assume the organisms in the clusters always come in the same order

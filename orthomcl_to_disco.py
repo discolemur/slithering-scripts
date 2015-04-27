@@ -2,6 +2,8 @@
 
 from argparse import ArgumentParser
 
+# Converts orthomcl output to disco format (used for clustering.py)
+
 code_to_species = {
 'OD07':'OD07_Cordulegaster_maculata_A4_assembly.pep.gz',
 'OD42':'OD42_Archilestes_grandis_A6_assembly.pep.gz',

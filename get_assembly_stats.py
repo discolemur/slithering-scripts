@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-#Calculate N50 statistic
+# Calculate N50 statistic and some other stats too.
 
 from sys import argv
 from math import floor
@@ -14,7 +14,7 @@ if len(files) == 0 :
 
 def get_data(infile) :
     '''
-        To be fair, much of this function was written by my supervisor: Anton Suvorov.
+        To be fair, much of this function was written by Anton Suvorov.
     '''
     ifh = open(infile)
 

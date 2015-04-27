@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+# phylip to fasta with no biopython requirement (works for python 2 and 3)
+
 import sys
 
 file = open(sys.argv[1], 'r')

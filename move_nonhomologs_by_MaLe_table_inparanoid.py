@@ -8,6 +8,10 @@ import argparse
 
 __author__='njensen6'
 
+
+# You got machine learning output -- yay!
+# Now this script will read the output and decide which cluster files should be moved to the non_homologs folder.
+
 ''' INPUT FORMAT
 -bash-4.1$ less hamstr_MaLe_log_reg_output.txt 
 
@@ -72,7 +76,7 @@ def main(infile, in_dir) :
     files = glob.glob('%s/*.aln' %in_dir)
     for file in files :
         name = ''
-        if 'ALICUT_' in name :
+        if 'ALICUT_' in file :
             name = file.split('/')[-1].split('ALICUT_')[1].split('.aln')[0]
         else :
             name = file.split('/')[-1].split('.aln')[0]

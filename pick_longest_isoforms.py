@@ -3,6 +3,8 @@
 import glob
 from argparse import ArgumentParser
 
+# Keeps largets isoform, throws the rest away. New file is named [oldfile].no_iso.fasta
+
 def get_species(header) :
     if 'assembly' in header :
         return '%s_assembly' %'_'.join(header.split('_')[1:]).split('_assembly')[0]

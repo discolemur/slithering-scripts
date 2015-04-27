@@ -3,6 +3,15 @@
 import glob
 import argparse
 
+######
+# Produces back translations of peptide alignments retaining alignment structure.
+# Must know locations of the .cds.fasta files
+######
+
+# This must be changed if you work with your own transcriptomes.
+# This is the location of transdecoder's .cds.fasta files (backtranslations of transcribed proteomes).
+cds_files_loc = '/fslgroup/fslg_BybeeLab/compute/all_illumina_trinity_transcriptomes/fasta_extracted/*.fasta'
+
 '''
 Can you align all UNTRIMMED AA 1:1 OrthoMCL clusters
 -> back translate them to DNA sequences retaining the alignment structure
@@ -15,7 +24,8 @@ paralog = False
 
 # >c10003_g1_i1|m.13125 c10003_g1_i1|g.13125  ORF c10003_g1_i1|g.13125 c10003_g1_i1|m.13125 type:internal len:211 (+) c10003_g1_i1:3-632(+)
 def read_fasta(infile, is_transdecoder = False) :
-    ''' Returns a dictionary in this schema -- {header(string)} -> [ sequence(string) ]
+    # Read a fasta, either from the .pep file or from the .cds.fasta file
+    ''' Returns a dictionary in this schema -- {header(string)} -> sequence(string)
     Parameters :
         infile : string
     '''
@@ -39,6 +49,8 @@ def read_fasta(infile, is_transdecoder = False) :
 # >c10003_g1_i1|m.13125 c10003_g1_i1|g.13125  ORF c10003_g1_i1|g.13125 c10003_g1_i1|m.13125 type:internal len:211 (+) c10003_g1_i1:3-632(+)
 # >100_OD08_Calopteryx_maculata_A7_assembly_comp579_c0_seq1_178-837_+_
 def mimic_seq(cluster, header, transcriptome) :
+    # For one sequence:
+    # Mimics the alignment structure in dna using pep alignment as a template
     pep_seq = cluster[header]
     header = header.split('assembly_')[-1]
     dna_seq = transcriptome[header]
@@ -57,6 +69,8 @@ def mimic_seq(cluster, header, transcriptome) :
 # >100_R_EP_001_assembly
 # >OD07
 def mimic_cluster(infile, dna) :
+    # For an entire cluster:
+    # Mimics the alignment structure in dna using pep alignment as a template
     global ingroup_only
     global paralog
     cluster = read_fasta(infile)
@@ -80,7 +94,8 @@ def mimic_cluster(infile, dna) :
     ofh.close()
 
 def main() :
-    dna_files = glob.glob('/fslgroup/fslg_BybeeLab/compute/all_illumina_trinity_transcriptomes/fasta_extracted/*.fasta')
+    global cds_files_loc
+    dna_files = glob.glob(cds_files_loc)
     if len(dna_files) == 0 :
         print('None found.')
     dna = {}
@@ -98,7 +113,9 @@ if __name__=='__main__' :
     parser.add_argument('-i', help='Ingroup only', action='store_true', default=False)
     parser.add_argument('-p', help='Contains paralogs', action='store_true', default=False)
     args = parser.parse_args()
+    # This just makes the header remain unchanged
     paralog = args.p
+    # This ignores all R* (ex: R_EP_002) taxa (they were the outgroup in our research)
     ingroup_only = args.i
     main()
 

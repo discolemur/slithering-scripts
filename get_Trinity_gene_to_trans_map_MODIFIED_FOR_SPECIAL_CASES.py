@@ -2,6 +2,8 @@
 
 import sys
 
+# This is yet another way to manage the get_gene_to_trans_map issue for the trinotate pipeline.
+
 # >c0_g1_i1 len=253 path=[577:0-15 337:16-252]
 
 # first is the fasta

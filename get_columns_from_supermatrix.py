@@ -3,6 +3,9 @@
 import argparse
 import random
 
+# Draw random columns from supermatrix.
+# Use the -h option to learn more.
+
 random.seed()
 
 def load_into_memory(supermatrix) :

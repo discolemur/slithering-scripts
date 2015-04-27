@@ -1,52 +1,88 @@
 Inparanoid Pipeline
 
-
-
-
-
-
-
-TODO
-
-
-
-
-
-
-
-
 -----Preliminary Step------
-obtaining_ortholog_clusters.txt
+Have transcriptomes in fasta format.
 
 -----scripts------
 
 REQUIRED:
 
-construct_supermatrix.py
-    usage: construct_supermatrix.py [-h] extension
-    output: super.fasta (supermatrix)
+run_transdecoder.sh
+    usage: run_transdecoder.sh [dna].fasta
+    output: [dna].fasta_transdecoder_tmp/[dna].pep
+        other output files, like [dna].cds.fasta, are also useful..
+
+prep_fasta_for_inparanoid.py
+    usage: prep_fasta_for_inparanoid.py <fasta in> <fasta out>
+    output: user-defined (NOT same name as fasta in)
+            Modifies headers to conform to InParanoid requirements.
+
+prepareAllForInparanoid.sh
+    usage: prepareAllForInparanoid.sh
+    output: all pep files have modified headers
+    WARNING: OVERWRITES THE ORIGINAL PEPTIDE FILES! I recommend making a copy of all proteomes elsewhere.
+
+produceParanoidScripts.sh
+    usage: produceParanoidScripts.sh
+    output: bash scripts for all InParanoid pairwise combinations of pep files.
+        also produces a runMultiparanoid.sh file, in case you want to run the
+        real multiparanoid program instead of mine.
+    When these scripts complete successfully, each creates its own directory
+    with table files.
+
+mineTableFiles.sh
+    usage: mineTableFiles.sh
+    output: folder called mined_tables contains all sqltable files produced by InParanoid.
+
+run_my_multiparanoid.sh
+    usage: run_my_multiparanoid.sh
+    output: solution.disco (a tab-delimited file identifying ortholog clusters)
+
+clustering.py
+    usage: clustering.py [-h] [--uses_dna] [-t T] organism_count output_type input
+           -t option enables multithreading (each cluster is mafft-aligned, which is easily parallelized.)
+    output: user-defined (folder named according to parameters, with aligned clusters according to parameters)
+          Clusters are binned according to the number of taxa (not number of genes) present.
+          Clusters are aligned, and have the extension .aln
+    See documentation file obtaining_ortholog_clusters.txt
 
 OPTIONAL:
 
-align_all.sh
-    output : in new directory "aln_files" with all *.fa* files mafft-aligned
-and renamed with .aln extension
+multiparanoid.pl
+   This is the true Multiparanoid script (I didn't write it, so you'll have to download it yourself.)
+   My solution is faster, guaranteed for all cases. The more taxa you have, the more you'll notice my improvement.
 
 -----tasks------
 
-1) Be inside a directory with ALIGNED ortholog cluster files. I often use the
-extension .aln to indicate alignment files.
+1) Produce peptide files for each DNA fasta. (If you did annotation, this is complete already.)
 
-    Cluster files : must be in fasta format, aligned, and sequences can be
-either peptide or dna.
+    run_transdecoder.sh
 
-    HEADER REQUIREMENT
+2) Fix transdecoder headers to accomodate InParanoid's silly requirements.
 
-    This is the regex format of headers that are acceptable, where .*_assembly
-is the actual taxa.
-    >[^_]*_.*_assembly_.*
+    prepareAllForInparanoid.sh
 
-    TO CHANGE HEADER REQUIREMENT : change the function get_taxa(line)
+3) Produce slurm scripts for each pairwise inparanoid run.
 
-2) construct_supermatrix.py [-h] .aln
-   Output will be called super.fasta
+    produceParanoidScripts.sh
+
+4) Submit all inparanoid scripts (our friendly supercomputer administrators do not like it when we submit hundreds of InParanoid batches at a time, but go ahead and try it if that's what you need.)
+
+    for batch in *.sh
+    do
+      sbatch $batch
+    done
+
+5) Get all sqltable.* files from InParanoid directories.
+
+    mineTableFiles.sh
+
+6) Get report for ortholog clusters (you may use run_my_multiparoid.sh or the commercial multiparanoid.pl)
+
+    run_my_multiparanoid.sh
+
+7) Get ortholog clusters from solution.disco (or output of multiparanoid.pl, which has a functionally equivalent format) with *.pep or *.fasta files
+
+    clustering.py
+    See documentation file obtaining_ortholog_clusters.txt
+

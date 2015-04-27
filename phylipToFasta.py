@@ -3,6 +3,8 @@
 import sys
 from Bio import SeqIO
 
+# Converts phylip to fasta. Python 3 does not work with this on marylou (currently) because biopython is only installed in python 2
+
 def main(args) :
     if (len(args) != 3) :
         print("Gimme an input and output file next time.\n")

@@ -3,6 +3,9 @@
 import sys
 import itertools
 
+# Reports the percent occurances of codons in a dna fasta file.
+# The fastas should be back translations (from transdecoder these are the .cds.fasta files)
+
 # Commandline arg is input peptide file.
 if len(sys.argv) == 1 :
     print('Please provide a file to check.')

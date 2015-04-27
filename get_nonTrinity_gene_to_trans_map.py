@@ -2,6 +2,10 @@
 
 import sys
 
+# This is to fix the get_gene_to_trans_map issue in the trinotate pipeline.
+# It may or may not work in every case.
+# Feel free to tweak it however necessary.
+
 file = sys.argv[1]
 
 # >contig00009  gene=isogroup00001  length=884 

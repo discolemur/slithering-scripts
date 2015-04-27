@@ -2,6 +2,12 @@
 
 import sys
 
+#### THIS SCRIPT IS NO LONGER NEEDED ####
+
+# Attempts to do a back translation according to the gff annotation.
+# This isn't very useful, because the transdecoder .cds.fasta file does this already: just look for gene ids.
+# So, this script is outdated.
+
 ## This program takes the following inputs:
 ##    [locationsOfOrfs].gff
 ##    [locationsOfDNASeqs].fasta

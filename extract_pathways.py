@@ -3,6 +3,11 @@
 import glob
 from argparse import ArgumentParser
 
+# Writes fasta files by gene (orthologs) and by taxon (all pathway genes for this organism)
+# Needs .hits files from BLAST (I got these from Anton)
+# Needs pathway name
+# Hardcoded to work with .cds.fasta files that we produced.
+
 '''
 Useful info about the blast input format:
 
@@ -75,6 +80,7 @@ def read_fasta(infile) :
     return fasta_map
 
 def write_pathway(taxon, best_hits_taxon, pathway_name) :
+    # Produces a fasta file for each organism with all genes in the pathway
     outfile = '%s.%s.fasta' %(taxon, pathway_name)
     filestub = '%s.cds.fasta' %taxon
     fasta_file = '/fslgroup/fslg_BybeeLab/compute/all_illumina_trinity_transcriptomes/inparanoid_computations/fasta_extracted/%s' %filestub
@@ -89,6 +95,7 @@ def write_pathway(taxon, best_hits_taxon, pathway_name) :
     return best_hits_taxon
 
 def write_orthologies(best_hits, gene, pathway_name) :
+    # Produces a fasta file with all orthologs of a specific gene (the pathway_name only affects the filename)
     outfile = '%s.%s.fasta' %(gene, pathway_name)
     fh = open(outfile, 'w')
     for taxon in best_hits :

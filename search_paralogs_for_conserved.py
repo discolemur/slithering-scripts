@@ -3,7 +3,9 @@
 import glob
 from argparse import ArgumentParser
 
-# It's ok to have the same gene, it's not ok to have different genes
+# Decide which clusters would be conserved if the isoforms were removed.
+
+# It's ok to have the same gene, it's not ok to have different isoforms
 # >10001_OD25_Stylurus_spiniceps_A15_assembly_comp31414_c0_seq1_2-325_-_
 def read_headers(infile) :
     ''' Returns bool and a dictionary in this schema -- {species} -> [genes(no isoform id)]

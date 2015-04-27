@@ -63,6 +63,7 @@ prep_clusters_for_aliscore.py
        produceAliscoreScripts.sh
 
  2c) Submit the aliscore scripts using my "babysitting" script, which supports multithreading and runs stuff locally if the submitted jobs are mostly all pending.
+
        submitAliscoreBatches.py
 
  2c) If all sequences are identical in the cluster, there must be an empty *_List_random.txt file.

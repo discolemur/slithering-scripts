@@ -6,6 +6,8 @@ import os
 import threading
 import argparse
 
+# Removes blank sequences from an alignment.
+
 def trim_file(filename, trimmed_fasta) :
     fh = open('tmp%s' %filename, 'w')
     for header in trimmed_fasta :
