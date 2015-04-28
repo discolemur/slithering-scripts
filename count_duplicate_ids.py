@@ -4,7 +4,9 @@ import sys
 import glob
 import os
 
-verbose = True
+# Counts the number of duplicate IDs (parsed from header) in a fasta file
+
+verbose = False
 
 def parse_header(line) :
     if len(line.split('.')) == 1 :
@@ -28,7 +30,7 @@ def handle_file(file) :
     print('%d duplicate ids in %s' %(counter, file))
     for id in ids :
         if ids[id] > 1 :
-            if not verbose :
+            if verbose :
                 print('%s: %d' %(id, ids[id]))
     if os.path.isfile(file + '_mod') :
         mod_counter = handle_file(file + '_mod')

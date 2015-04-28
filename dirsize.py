@@ -3,6 +3,8 @@
 import glob
 import sys
 
+# Reports the size of the directory specified (default is current directory)
+
 length = 0
 
 if len(sys.argv) > 1 :

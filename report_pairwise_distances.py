@@ -6,6 +6,7 @@ import numpy
 
 '''
 This script finds pairwise distances between sequences (fasta format) using the a simple jukes_cantor scoring matrix with indel penalty of 1.
+It was used in determining good clusters to use for phylogenetic inference. We looked for conserved (low distance) clusters among stick bug ortholog cluster files.
 '''
 
 seqtype = None

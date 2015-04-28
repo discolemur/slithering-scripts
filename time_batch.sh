@@ -1,8 +1,14 @@
 #! /bin/bash
 
+# This script polls slurm every two seconds to get the status of a job and its most recent output.
+# It writes this output to a file called job_[job ID]_stats.txt
+
 # $1 is the job id
 
-output="job_$1_stats"
+echo 'Usage: time_batch.sh job_id'
+echo 'The job id is a big number.'
+
+output="job_$1_stats.txt"
 
 # $1 is the job id
 # $2 is the time information from squeue

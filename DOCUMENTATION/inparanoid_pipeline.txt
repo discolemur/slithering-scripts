@@ -10,15 +10,15 @@ REQUIRED:
 run_transdecoder.sh
     usage: run_transdecoder.sh [dna].fasta
     output: [dna].fasta_transdecoder_tmp/[dna].pep
-        other output files, like [dna].cds.fasta, are also useful..
+        other output files, like [dna].fasta.transdecoder.cds are also useful..
 
 prep_fasta_for_inparanoid.py
     usage: prep_fasta_for_inparanoid.py <fasta in> <fasta out>
     output: user-defined (NOT same name as fasta in)
             Modifies headers to conform to InParanoid requirements.
 
-prepareAllForInparanoid.sh
-    usage: prepareAllForInparanoid.sh
+prep_all_for_inparanoid.sh
+    usage: prep_all_for_inparanoid.sh
     output: all pep files have modified headers
     WARNING: OVERWRITES THE ORIGINAL PEPTIDE FILES! I recommend making a copy of all proteomes elsewhere.
 
@@ -60,7 +60,7 @@ multiparanoid.pl
 
 2) Fix transdecoder headers to accomodate InParanoid's silly requirements.
 
-    prepareAllForInparanoid.sh
+    prep_all_for_inparanoid.sh
 
 3) Produce slurm scripts for each pairwise inparanoid run.
 

@@ -14,5 +14,5 @@ do
 	name="${file##*/}"
 	name="${name%.*}"
 	output=$2/$name.msf
-	/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/fastaToPfam.py $file $output
+	/fslgroup/fslg_BybeeLab/scripts/nick/slithering-scripts/change_formats/fastaToPfam.py $file $output
 done
