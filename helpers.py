@@ -33,7 +33,6 @@ def parallelize(values, action, num_threads) :
     Values are a list of items to act upon.
     Action is the function that takes a batch of values.
     num_threads is obvious.
-
     Action will accept two arguments: a subset of values, and the value of the first index in the full array.
     Sometimes I want to know the counter ID for each value. That's why I give that index as an argument.
     '''
@@ -42,8 +41,12 @@ def parallelize(values, action, num_threads) :
         num_threads = len(values)
     threads = []
     div = int(len(values) / num_threads)
+    diff = len(values) % num_threads
     begin = 0
-    end = div + (len(values) % num_threads)
+    end = div
+    if diff > 0 :
+        end += 1
+        diff -= 1
     for i in range(num_threads) :
         counter = begin
         thread = threading.Thread(target=action, args=(values[begin:end], counter))
@@ -51,5 +54,8 @@ def parallelize(values, action, num_threads) :
         thread.start()
         begin = end
         end += div
+        if diff > 0 :
+            end += 1
+            diff -= 1
     for thread in threads :
         thread.join()
